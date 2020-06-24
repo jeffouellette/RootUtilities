@@ -1,3 +1,6 @@
+#ifndef __Utilities_cxx__
+#define __Utilities_cxx__
+
 #include "Utilities.h"
 
 #include <TSystemDirectory.h>
@@ -1041,3 +1044,5 @@ void myMarkerAndBoxAndLineText (double x, double y, const double bsize, const in
   l.SetNDC ();
   l.DrawLatex (x, y, text);
 }
+
+#endif
