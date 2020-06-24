@@ -192,6 +192,11 @@ void RecenterGraph (TGAE* g);
 /**
  * New binning
  */ 
+
+/**
+ * Applies new binning to a histogram
+ * BE CAREFUL: if bins edges don't overlap, this can lead to unexpected behavior!
+ */
 void RebinSomeBins (TH1D* &h, int nbins, double* bins);
 
 

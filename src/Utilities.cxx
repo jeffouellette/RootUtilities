@@ -428,6 +428,78 @@ void SaveRelativeErrors (TGAE* errors, TGAE* centralValues, TH1D* highs, TH1D* l
 
 
 /**
+ * Creates a projection of a TH3 with the specified axes by integrating between min and max on the 3rd axis of the TH3.
+ */
+TH2D* Project2D (TString name, TH3D* h3, const TString xaxis, const TString yaxis, const int min, const int max, const bool exclusive) {
+  int nx, ny, nz;
+  double* xbins = NULL;
+  double* ybins = NULL;
+
+  if (xaxis == yaxis || (!(xaxis == "x" || xaxis == "y" || xaxis == "z") || !(yaxis == "x" || yaxis == "y" || yaxis == "z")))
+   return NULL;
+
+  // determine which axis in the TH3 is the xaxis in the TH2
+  if      (xaxis == "x") { nx = h3->GetNbinsX(); xbins = (double*)h3->GetXaxis()->GetXbins()->GetArray(); }
+  else if (xaxis == "y") { nx = h3->GetNbinsY(); xbins = (double*)h3->GetYaxis()->GetXbins()->GetArray(); }
+  else if (xaxis == "z") { nx = h3->GetNbinsZ(); xbins = (double*)h3->GetZaxis()->GetXbins()->GetArray(); }
+
+  // determine which axis in the TH3 is the yaxis in the TH2
+  if      (yaxis == "x") { ny = h3->GetNbinsX(); ybins = (double*)h3->GetXaxis()->GetXbins()->GetArray(); }
+  else if (yaxis == "y") { ny = h3->GetNbinsY(); ybins = (double*)h3->GetYaxis()->GetXbins()->GetArray(); }
+  else if (yaxis == "z") { ny = h3->GetNbinsZ(); ybins = (double*)h3->GetZaxis()->GetXbins()->GetArray(); }
+
+  if (!xbins || !ybins) return NULL;
+
+  // determine which axis in TH3 is the extra "z" axis
+  if      (xaxis != "x" && yaxis != "x") nz = h3->GetNbinsX();
+  else if (xaxis != "y" && yaxis != "y") nz = h3->GetNbinsY();
+  else if (xaxis != "z" && yaxis != "z") nz = h3->GetNbinsZ();
+
+  if (name == "") name = TString(h3->GetName()) + "_" + xaxis + yaxis;
+  TH2D* h2 = new TH2D (name, "", nx, xbins, ny, ybins);
+
+  for (int ix = 1; ix <= nx; ix++) {
+   for (int iy = 1; iy <= ny; iy++) {
+    double content = 0;
+    double var = 0;
+
+    int h3ix, h3iy, h3iz;
+    for (int iz = 1; iz <= nz; iz++) { // loop over extra "z" axis (not in TH2)
+     if (!exclusive && (iz < min || max < iz))
+      continue;
+     else if (exclusive && min <= iz && iz <= max)
+      continue;
+
+     if      (xaxis == "x" && yaxis == "y") { h3ix = ix; h3iy = iy; h3iz = iz; }
+     else if (xaxis == "x" && yaxis == "z") { h3ix = ix; h3iz = iy; h3iy = iz; }
+     else if (xaxis == "y" && yaxis == "x") { h3iy = ix; h3ix = iy; h3iz = iz; }
+     else if (xaxis == "y" && yaxis == "z") { h3iy = ix; h3iz = iy; h3ix = iz; }
+     else if (xaxis == "z" && yaxis == "x") { h3iz = ix; h3ix = iy; h3iy = iz; }
+     else if (xaxis == "z" && yaxis == "y") { h3iz = ix; h3iy = iy; h3ix = iz; }
+
+     content += h3->GetBinContent (h3ix, h3iy, h3iz);
+     var += pow (h3->GetBinError (h3ix, h3iy, h3iz), 2);
+
+    } // end loop over extra axis
+
+    h2->SetBinContent (ix, iy, content);
+    h2->SetBinError (ix, iy, sqrt (var));
+   }
+  }
+
+  if      (xaxis == "x") h2->GetXaxis()->SetTitle (h3->GetXaxis()->GetTitle());
+  else if (xaxis == "y") h2->GetXaxis()->SetTitle (h3->GetYaxis()->GetTitle());
+  else if (xaxis == "z") h2->GetXaxis()->SetTitle (h3->GetZaxis()->GetTitle());
+
+  if      (yaxis == "x") h2->GetYaxis()->SetTitle (h3->GetXaxis()->GetTitle());
+  else if (yaxis == "y") h2->GetYaxis()->SetTitle (h3->GetYaxis()->GetTitle());
+  else if (yaxis == "z") h2->GetYaxis()->SetTitle (h3->GetZaxis()->GetTitle());
+
+  return h2;
+}
+
+
+/**
  * Separates each point on a TGAE by delta along the x axis, so that the errors don't overlap.
  */
 void deltaize (TGAE* tg, const double delta, const bool logx, const double x1, const double x2) {
