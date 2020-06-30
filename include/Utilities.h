@@ -184,6 +184,12 @@ TGAE* TEff2TGAE (TEfficiency* e);
 
 
 /**
+ * Recenters a TGraph according to the midpoints of matched
+ */
+void RecenterGraph (TGraph* g, TGraph* matched);
+
+
+/**
  * Recenters a TGAE point for a log scale.
  */
 void RecenterGraph (TGAE* g);

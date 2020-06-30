@@ -631,6 +631,21 @@ TGAE* TEff2TGAE (TEfficiency* e) {
 
 
 /**
+ * Recenters a TGraph according to the midpoints of matched
+ */
+void RecenterGraph (TGraph* g, TGraph* matched) {
+  double x, y, dummy;
+  assert (g->GetN () == matched->GetN ());
+  for (int n = 0; n < g->GetN (); n++) {
+    g->GetPoint (n, x, y);
+    matched->GetPoint (n, x, dummy);
+    g->SetPoint (n, x, y);
+  }
+  return;
+}
+
+
+/**
  * Recenters a TGAE point for a log scale.
  */
 void RecenterGraph (TGAE* g) {
