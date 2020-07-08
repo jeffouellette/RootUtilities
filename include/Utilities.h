@@ -229,7 +229,7 @@ void FormatTH2Canvas (TCanvas* c, const bool zAxisSpace=true);
 
 TGraphAsymmErrors* TH1TOTGraph (TH1 *h1);
 
-void BinomialDivide (TH1D* n, TH1D* d);
+void BinomialDivide (TH1* n, TH1* d);
 
 /**
  * The infamous myText draws a text label on your favorite plot
@@ -242,7 +242,7 @@ void myLineText (double x, double y, int color, int lstyle, const char *text, fl
 
 void myLineColorText (double x, double y, int color, int lstyle, const char *text, float lsize, double tsize);
 
-void myMarkerText (double x, double y, int color, int mstyle, const char *text, float msize=1.25, double tsize=0.032);
+void myMarkerText (double x, double y, int color, int mstyle, const char *text, float msize=1.25, double tsize=0.032, bool doOutline=false);
 
 void myMarkerTextNoLine (double x, double y, int color, int mstyle, const char *text, float msize=1.25, double tsize=0.032);
 

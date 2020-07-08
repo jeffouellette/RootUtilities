@@ -962,7 +962,7 @@ void myLineColorText (double x, double y, int color, int lstyle, const char* tex
 
 
 
-void myMarkerText (double x, double y, int color, int mstyle, const char* text, float msize, double tsize) {
+void myMarkerText (double x, double y, int color, int mstyle, const char* text, float msize, double tsize, bool doOutline) {
 //  double tsize=0.032;
   //TMarker *marker = new TMarker(x-(0.44*tsize),y,8);
   TMarker* marker = new TMarker (x-(0.8*tsize), y, 8);
@@ -978,6 +978,15 @@ void myMarkerText (double x, double y, int color, int mstyle, const char* text, 
   markerLine->SetLineStyle (1);
   markerLine->SetLineWidth (2);
   markerLine->Draw ();
+
+  if (doOutline && IsFullMarker (mstyle)) {
+    TMarker* marker2 = new TMarker (x-(0.8*tsize), y, 8);
+    marker2->SetMarkerColor (kBlack);
+    marker2->SetNDC ();
+    marker2->SetMarkerStyle (FullToOpenMarker (mstyle));
+    marker2->SetMarkerSize (msize);
+    marker2->Draw ();
+  }
 
   if (text[0] != '\0') {
     TLatex l;
