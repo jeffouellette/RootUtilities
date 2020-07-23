@@ -41,9 +41,9 @@ const char* FormatMeasurement (double val, double err, const int n) {
   if (err == 0) {
     short valDec = 0;
     while (valDec < (short)valStr.length() && valStr[valDec] != '.')
-     valDec++;
+      valDec++;
     if (valDec == (short)valStr.length()) {
-     valStr = valStr + ".";
+      valStr = valStr + ".";
     }
 
     if (valDec > n) { // if decimal is after least significant digit
@@ -58,69 +58,109 @@ const char* FormatMeasurement (double val, double err, const int n) {
   }
 
   if (err < 1) {
-   // find the first significant digit
-   int errStart = 0;
-   while (errStr[errStart] == '0' || errStr[errStart] == '.')
-    errStart++;
-   errStart = errStart - 2; // first 2 characters are necessarly "0."
+    // find the first significant digit
+    int errStart = 0;
+    while (errStr[errStart] == '0' || errStr[errStart] == '.')
+      errStart++;
+    errStart = errStart - 2; // first 2 characters are necessarly "0."
 
-   // round the value and error to the appropriate decimal place
-   const double factorOfTen = pow (10, errStart+n);
-   val = floor (factorOfTen * val + 0.5) / factorOfTen;
-   err = floor (factorOfTen * err + 0.5) / factorOfTen;
+    // round the value and error to the appropriate decimal place
+    const double factorOfTen = pow (10, errStart+n);
+    val = floor (factorOfTen * val + 0.5) / factorOfTen;
+    err = floor (factorOfTen * err + 0.5) / factorOfTen;
 
-   // recast to string
-   valStr = Form ("%g", val);
-   errStr = Form ("%g", err);
+    // recast to string
+    valStr = Form ("%g", val);
+    errStr = Form ("%g", err);
 
-   // find where the decimal place is, append it if it's not present
-   short valDec = 0;
-   while (valDec < (short)valStr.length() && valStr[valDec] != '.')
-    valDec++;
-   if (valDec == (short)valStr.length()) {
-    valStr = valStr + ".";
-   }
+    // find where the decimal place is, append it if it's not present
+    short valDec = 0;
+    while (valDec < (short)valStr.length() && valStr[valDec] != '.')
+      valDec++;
+    if (valDec == (short)valStr.length()) {
+      valStr = valStr + ".";
+    }
 
-   // pad with zeroes
-   while ((short)valStr.length() < valDec + errStart + 1 + n)
-    valStr = valStr + "0";
-   while ((short)errStr.length() < errStart + 2 + n)
-    errStr = errStr + "0";
+    // pad with zeroes
+    while ((short)valStr.length() < valDec + errStart + 1 + n)
+      valStr = valStr + "0";
+    while ((short)errStr.length() < errStart + 2 + n)
+      errStr = errStr + "0";
 
-   //// find where we are truncating the value
-   //const short valCut = valDec + errStart + 2 + n;
+    //// find where we are truncating the value
+    //const short valCut = valDec + errStart + 2 + n;
 
-   //// now truncate
-   //valStr = valStr.substr (0, valCut);
-   //errStr = errStr.substr (0, errStart + 2 + n);
+    //// now truncate
+    //valStr = valStr.substr (0, valCut);
+    //errStr = errStr.substr (0, errStart + 2 + n);
   }
   else { // now if err>1
-   // find the decimal place
-   short errDec = 0;
-   while (errDec < (short)errStr.length() && errStr[errDec] != '.')
-    errDec++;
+    // find the decimal place
+    short errDec = 0;
+    while (errDec < (short)errStr.length() && errStr[errDec] != '.')
+      errDec++;
 
-   // round the value and error to the appropriate decimal place
-   if (errDec < (short)errStr.length() - 1) {
-    const double factorOfTen = pow (10., n - errDec);
-    if (n - errDec >= 0) {
-     val = floor (factorOfTen * val + 0.5) / factorOfTen;
-     err = floor (factorOfTen * err + 0.5) / factorOfTen;
-    } else {
-     val = floor (factorOfTen * val) / factorOfTen;
-     err = floor (factorOfTen * err) / factorOfTen;
+    // round the value and error to the appropriate decimal place
+    if (errDec < (short)errStr.length() - 1) {
+      const double factorOfTen = pow (10., n - errDec);
+      if (n - errDec >= 0) {
+        val = floor (factorOfTen * val + 0.5) / factorOfTen;
+        err = floor (factorOfTen * err + 0.5) / factorOfTen;
+      } else {
+        val = floor (factorOfTen * val) / factorOfTen;
+        err = floor (factorOfTen * err) / factorOfTen;
+      }
     }
-   }
 
-   // recast to string
-   valStr = Form ("%g", val);
-   errStr = Form ("%g", err);
+    // recast to string
+    valStr = Form ("%g", val);
+    errStr = Form ("%g", err);
   }
 
   // now save the value string to the output
   out = valStr + " #pm " + errStr + "";
 
   return out.Data();
+}
+
+
+/**
+ * Truncates numbers to the desired precision based on the most precise uncertainty (stat. or syst.)
+ */
+void FormatMeasurement (string& s_val, string& s_stat, string& s_syst, const int n) {
+  assert (n > 0); // sanity check
+
+  double val = atof (s_val.c_str ());
+  double stat = atof (s_stat.c_str ());
+  double syst = atof (s_syst.c_str ());
+
+  int i = 0;
+  while (fabs (stat) < pow (10, n-1) || fabs (syst) < pow (10, n-1) && i < 10) { // i < 10 as an arbitrary cut (so this doesn't go forever)
+    val *= 10;
+    stat *= 10;
+    syst *= 10;
+    i++;
+  }
+
+  val = round (val);
+  stat = round (stat);
+  syst = round (syst);
+
+  val = val / pow (10, i);
+  stat = stat / pow (10, i);
+  syst = syst / pow (10, i);
+
+  s_val = to_string (val);
+  s_stat = to_string (stat);
+  s_syst = to_string (syst);
+
+  while (s_val.back () == '0' && s_stat.back () == '0' && s_syst.back () == '0') {
+    s_val.pop_back ();
+    s_stat.pop_back ();
+    s_syst.pop_back ();
+  }
+
+  return;
 }
 
 
@@ -398,6 +438,7 @@ void CalcSystematics (TGAE* graph, TGAE* optimal, const TGraph* sys_hi, const TG
  * Sets the bin contents in target as the error in errors / central values in centralValues
  */
 void SaveRelativeErrors (TH1D* errors, TH1D* centralValues) {
+  assert (errors->GetNbinsX () == centralValues->GetNbinsX ());
   for (int ix = 1; ix <= errors->GetNbinsX (); ix++) {
     if (centralValues->GetBinContent (ix) != 0)
       errors->SetBinContent (ix, errors->GetBinError (ix) / centralValues->GetBinContent (ix));
@@ -407,9 +448,29 @@ void SaveRelativeErrors (TH1D* errors, TH1D* centralValues) {
 
 
 /**
+ * Sets the bin contents in highs and lows as the respective errors in centralValues
+ */
+void SaveAbsoluteErrors (TGAE* errors, TGAE* centralValues, TH1D* highs, TH1D* lows) {
+  assert (errors->GetN () == centralValues->GetN ());
+  for (int ix = 0; ix < centralValues->GetN (); ix++) {
+    double x = 0, y = 0, eyhi = 0, eylo = 0;
+    eyhi = errors->GetErrorYhigh (ix);
+    eylo = errors->GetErrorYlow (ix);
+
+    highs->SetBinContent (ix+1, eyhi);
+    lows->SetBinContent (ix+1, -eylo);
+
+    highs->SetBinError (ix+1, 0);
+    lows->SetBinError (ix+1, 0);
+  }
+}
+
+
+/**
  * Sets the bin contents in highs and lows as the respective errors / central values in centralValues
  */
 void SaveRelativeErrors (TGAE* errors, TGAE* centralValues, TH1D* highs, TH1D* lows) {
+  assert (errors->GetN () == centralValues->GetN ());
   for (int ix = 0; ix < centralValues->GetN (); ix++) {
     double x = 0, y = 0, eyhi = 0, eylo = 0;
     centralValues->GetPoint (ix, x, y);
@@ -667,7 +728,9 @@ void RecenterGraph (TGAE* g) {
  * Applies new binning to a histogram
  * BE CAREFUL: if bins edges don't overlap, this can lead to unexpected behavior!
  */ 
-void RebinSomeBins (TH1D* &h, int nbins, double* bins) {
+void RebinSomeBins (TH1D** _h, int nbins, double* bins) {
+  TH1D* h = (*_h);
+
   if (nbins >= h->GetNbinsX ()) {
     cout << "More new bins than old bins, returning." << endl;
     return;
@@ -701,7 +764,7 @@ void RebinSomeBins (TH1D* &h, int nbins, double* bins) {
   delete[] oldbins;
 
   delete h;
-  h = hnew;
+  *_h = hnew;
 }
 
 

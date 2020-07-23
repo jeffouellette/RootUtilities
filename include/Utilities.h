@@ -11,6 +11,10 @@
 #include <TEfficiency.h>
 #include <TCanvas.h>
 
+#include <string>
+
+using namespace std;
+
 typedef TGraphAsymmErrors TGAE;
 
 /**
@@ -27,6 +31,12 @@ template <typename T> inline void SaferDelete (T** t) {
  * Or, FormatMeasurement (40.58, 1.29, 2) returns "40.6#pm1.3".
  */
 const char* FormatMeasurement (double val, double err, const int n=1);
+
+
+/**
+ * Truncates numbers to the desired precision based on the most precise uncertainty (stat. or syst.)
+ */
+void FormatMeasurement (string& s_val, string& s_stat, string& s_syst, const int n);
 
 
 /**
@@ -141,6 +151,12 @@ void SaveRelativeErrors (TH1D* errors, TH1D* centralValues);
 
 
 /**
+ * Sets the bin contents in highs and lows as the respective errors in centralValues
+ */
+void SaveAbsoluteErrors (TGAE* errors, TGAE* centralValues, TH1D* highs, TH1D* lows);
+
+
+/**
  * Sets the bin contents in highs and lows as the respective errors / central values in centralValues
  */
 void SaveRelativeErrors (TGAE* errors, TGAE* centralValues, TH1D* highs, TH1D* lows);
@@ -203,7 +219,7 @@ void RecenterGraph (TGAE* g);
  * Applies new binning to a histogram
  * BE CAREFUL: if bins edges don't overlap, this can lead to unexpected behavior!
  */
-void RebinSomeBins (TH1D* &h, int nbins, double* bins);
+void RebinSomeBins (TH1D** _h, int nbins, double* bins);
 
 
 /**
