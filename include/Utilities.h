@@ -252,7 +252,9 @@ void BinomialDivide (TH1* n, TH1* d);
  */
 void myText (double x, double y,  Color_t color, const char *text, double tsize=0.04);
 
-void myBoxText (double x, double y, double boxsize, int mcolor, const char *text);
+void myBoxText (double x, double y, double boxsize, int mcolor, const char *text, const double tsize=0.06);
+
+void myBoxTextNoLine (double x, double y, double boxsize, int mcolor, const char *text, const double tsize=0.06);
 
 void myLineText (double x, double y, int color, int lstyle, const char *text, float lsize, double tsize);
 
