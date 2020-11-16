@@ -40,6 +40,12 @@ void FormatMeasurement (string& s_val, string& s_stat, string& s_syst, const int
 
 
 /**
+ * Sets the errors in h assuming the variances are stored in the entries of h2.
+ */
+void SetVariances (TH1D* h, TH2D* h2);
+
+
+/**
  * Modifies the directory strings to point to the correct locations.
  */
 void SetupDirectories (const TString dataSubDir, const TString thisWorkPath);

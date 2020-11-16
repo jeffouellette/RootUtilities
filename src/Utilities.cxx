@@ -165,6 +165,20 @@ void FormatMeasurement (string& s_val, string& s_stat, string& s_syst, const int
 
 
 /**
+ * Sets the errors in h assuming the variances are stored in the entries of h2.
+ */
+void SetVariances (TH1D* h, TH2D* h2) {
+  const int nb = h->GetNbinsX ();
+  assert (nb == h2->GetNbinsX () && nb == h2->GetNbinsY ());
+
+  for (int iX = 1; iX <= nb; iX++) {
+    assert (h2->GetBinContent (iX, iX) >= 0);
+    h->SetBinError (iX, sqrt (h2->GetBinContent (iX, iX)));
+  }
+}
+
+
+/**
  * Returns a linearly spaced array. The 0th element is lo, and the num-th element is hi.
  */
 double* linspace (double lo, double hi, int num) {
