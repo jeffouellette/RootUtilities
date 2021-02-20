@@ -107,6 +107,18 @@ void ResetXErrors (TGAE* tg);
 
 
 /**
+ * Calculates errors in a TH1D from a TH2D storing the quadrature sum of each entry.
+ */
+void CalcUncertainties (TH1D* h, TH2D* h2, const double nEvts);
+
+
+/**
+ * Calculates errors in a TH1D from a TH2D storing the quadrature sum of each entry. Assumes weights are used, so a histogram with the number of events to the powers 0, 1, and 2 is needed.
+ */
+void CalcUncertainties (TH1D* h, TH2D* h2, TH1D* hn);
+
+
+/**
  * Adds nSigma statistical error variations to this histogram
  */
 void AddStatVar (TH1D* h, const bool upvar = true, const float nSigma = 1);

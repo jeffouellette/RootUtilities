@@ -286,6 +286,55 @@ void ResetXErrors (TGAE* tg) {
 
 
 /**
+ * Calculates errors in a TH1D from a TH2D storing the quadrature sum of each entry.
+ */
+void CalcUncertainties (TH1D* h, TH2D* h2, const double n) {
+  if (n <= 1)
+    std::cout << "Warning: n <= 1 for histograms " << h->GetName () << " and " << h2->GetName () << std::endl;
+  assert (n > 1); // check number of entries is at least 1 (otherwise the sample variance is undefined!)
+  assert (h->GetNbinsX () == h2->GetNbinsX ());  // check h2 is a valid sum(x^2) of h.
+  assert (h2->GetNbinsX () == h2->GetNbinsY ()); // check h2 is "square" -- same bins in X & Y.
+  h->Scale (1./n);
+  for (int iX = 1; iX <= h2->GetNbinsX (); iX++)
+    for (int iY = 1; iY <= h2->GetNbinsY (); iY++)
+      h2->SetBinContent (iX, iY, h2->GetBinContent (iX, iY) - n * (h->GetBinContent (iX)) * (h->GetBinContent (iY)));
+  h->Scale (1., "width");
+  h2->Scale (pow (n*(n-1.), -1), "width");
+  SetVariances (h, h2);
+  return;
+}
+
+
+/**
+ * Calculates errors in a TH1D from a TH2D storing the quadrature sum of each entry. Assumes weights are used, so a histogram with the number of events to the powers 0, 1, and 2 is needed.
+ */
+void CalcUncertainties (TH1D* h, TH2D* h2, TH1D* hn) {
+  assert (h->GetNbinsX () == h2->GetNbinsX ());  // check h2 is a valid sum(x^2) of h.
+  assert (h2->GetNbinsX () == h2->GetNbinsY ()); // check h2 is "square" -- same bins in X & Y.
+  assert (hn->GetNbinsX () >= 3); // check counts histogram has at least 3 bins
+
+  const double n0 = hn->GetBinContent (1);
+  const double n1 = hn->GetBinContent (2);
+  const double n2 = hn->GetBinContent (3);
+
+  if (n0 <= 1)
+    std::cout << "Warning: n0 <= 1 for histograms " << h->GetName () << " and " << h2->GetName () << std::endl;
+  assert (n0 > 1); // check number of entries is at least 1 (otherwise the sample variance is undefined!)
+
+  h->Scale (1./n1);
+  for (int iX = 1; iX <= h2->GetNbinsX (); iX++)
+    for (int iY = 1; iY <= h2->GetNbinsY (); iY++)
+      h2->SetBinContent (iX, iY, h2->GetBinContent (iX, iY) - n1 * (h->GetBinContent (iX)) * (h->GetBinContent (iY)));
+  h->Scale (1., "width");
+  h2->Scale (pow (n0*(n1*n1-n2)/n1, -1), "width");
+  SetVariances (h, h2);
+  return;
+}
+
+
+
+
+/**
  * Adds nSigma statistical error variations to this histogram
  */
 void AddStatVar (TH1D* h, const bool upvar, const float nSigma) {
