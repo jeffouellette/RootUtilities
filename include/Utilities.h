@@ -119,6 +119,12 @@ void CalcUncertainties (TH1D* h, TH2D* h2, TH1D* hn);
 
 
 /**
+ * Adds the maximum systematic uncertainty from v1 and v2 to sys in quadrature.
+ */
+void AddMaxSystematic (TGAE* sys, TGAE* v1, TGAE* v2);
+
+
+/**
  * Adds nSigma statistical error variations to this histogram
  */
 void AddStatVar (TH1D* h, const bool upvar = true, const float nSigma = 1);
