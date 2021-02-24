@@ -151,6 +151,13 @@ void CalcSystematics (TGAE* sys, TH1D* var, const bool applyBothWays = true);
 
 
 /**
+ * Calculates simple systematics as maximum variations on the nominal.
+ * Intended for combining up/down variations in an expandable way.
+ */
+void CalcSystematics (TGAE* sys, TH1D* nom, TH1D* var);
+
+
+/**
  * Calculates the systematic errors on optimal, storing the results in graph.
  */
 void CalcSystematics (TGAE* graph, TH1* optimal, const TH1* sys_hi, const TH1* sys_lo);

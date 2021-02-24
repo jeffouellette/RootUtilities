@@ -332,6 +332,22 @@ void CalcUncertainties (TH1D* h, TH2D* h2, TH1D* hn) {
 }
 
 
+/**
+ * Adds the maximum systematic uncertainty from v1 and v2 to sys in quadrature.
+ */
+void AddMaxSystematic (TGAE* sys, TGAE* v1, TGAE* v2) {
+  assert (sys->GetN () == v1->GetN ());
+  assert (sys->GetN () == v2->GetN ());
+  for (int ix = 0; ix < sys->GetN (); ix++) {
+    double upErr = fmax (v1->GetErrorYhigh (ix), v2->GetErrorYhigh (ix));
+    double downErr = fmax (v1->GetErrorYlow (ix), v2->GetErrorYlow (ix));
+    sys->SetPointEYhigh (ix, sqrt (pow (sys->GetErrorYhigh (ix), 2) + pow (upErr, 2)));
+    sys->SetPointEYlow (ix, sqrt (pow (sys->GetErrorYlow (ix), 2) + pow (downErr, 2)));
+  }
+  return;
+}
+
+
 
 
 /**
@@ -418,6 +434,28 @@ void CalcSystematics (TGAE* sys, TH1D* var, const bool applyBothWays) {
     if (applyBothWays || newErr < 0) {
       sys->SetPointEYlow (ix, fmax (fabs (newErr), sys->GetErrorYlow (ix)));
     }
+  }
+}
+
+
+/**
+ * Calculates simple systematics as maximum variations on the nominal.
+ * Intended for combining up/down variations in an expandable way.
+ */
+void CalcSystematics (TGAE* sys, TH1D* nom, TH1D* var) {
+  assert (nom->GetNbinsX () == var->GetNbinsX ());
+  for (int ix = 0; ix < nom->GetNbinsX (); ix++) {
+    double x = nom->GetBinCenter (ix+1);
+    double y = nom->GetBinContent (ix+1);
+
+    sys->SetPoint (ix, x, y);
+
+    const float newErr = fabs (var->GetBinContent (ix+1) - y);
+
+    sys->SetPointEYhigh (ix, newErr);
+    sys->SetPointEYlow (ix, newErr);
+    sys->SetPointEXhigh (ix, nom->GetBinWidth (ix+1) * 0.5);
+    sys->SetPointEXlow (ix, nom->GetBinWidth (ix+1) * 0.5);
   }
 }
 
