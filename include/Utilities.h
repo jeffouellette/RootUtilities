@@ -178,7 +178,7 @@ void CalcSystematics (TGAE* graph, TGAE* optimal, const TGraph* sys_hi, const TG
 /**
  * Sets the bin contents in target as the error / central values in centralValues
  */
-void SaveRelativeErrors (TH1D* errors, TH1D* centralValues);
+void SaveRelativeErrors (TH1D* errors, TH1D* centralValues, bool useCentVals=false);
 
 
 /**

@@ -538,11 +538,11 @@ void CalcSystematics (TGAE* graph, TGAE* optimal, const TGraph* sys_hi, const TG
 /**
  * Sets the bin contents in target as the error in errors / central values in centralValues
  */
-void SaveRelativeErrors (TH1D* errors, TH1D* centralValues) {
+void SaveRelativeErrors (TH1D* errors, TH1D* centralValues, bool useCentVals) {
   assert (errors->GetNbinsX () == centralValues->GetNbinsX ());
   for (int ix = 1; ix <= errors->GetNbinsX (); ix++) {
     if (centralValues->GetBinContent (ix) != 0)
-      errors->SetBinContent (ix, errors->GetBinError (ix) / centralValues->GetBinContent (ix));
+      errors->SetBinContent (ix, (useCentVals ? errors->GetBinContent (ix) : errors->GetBinError (ix)) / centralValues->GetBinContent (ix));
     errors->SetBinError (ix, 0);
   }
 }
