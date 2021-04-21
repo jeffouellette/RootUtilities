@@ -179,6 +179,28 @@ void SetVariances (TH1D* h, TH2D* h2) {
 
 
 /**
+ * Divides two histograms assuming the entries in one are binomial samples of the other.
+ */
+void BinomialDivide (TH1* out, TH1* num, TH1* den) {
+  assert (out->GetNbinsX () == num->GetNbinsX ());
+  assert (out->GetNbinsX () == den->GetNbinsX ());
+  assert (out->GetNbinsY () == num->GetNbinsY ());
+  assert (out->GetNbinsY () == den->GetNbinsY ());
+
+  for (int iX = 1; iX <= out->GetNbinsX (); iX++) {
+    for (int iY = 1; iY <= out->GetNbinsY (); iY++) {
+      const double passes = num->GetBinContent (iX, iY);
+      const double trials = den->GetBinContent (iX, iY);
+      const double rate = passes/trials;
+      out->SetBinContent (iX, iY, rate);
+      out->SetBinError (iX, iY, (1.-0.6827/2.) * sqrt ((rate*(1.-rate))/trials)); // normal approximation to uncertainty on efficiency
+    }
+  }
+  return;
+}
+
+
+/**
  * Returns a linearly spaced array. The 0th element is lo, and the num-th element is hi.
  */
 double* linspace (double lo, double hi, int num) {
