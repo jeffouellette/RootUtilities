@@ -1103,6 +1103,61 @@ void myBoxText (double x, double y, double boxsize, int mcolor, const char* text
 
 
 
+void myBoxText2 (double x, double y, int color, int mstyle, const char* text, float msize, double tsize, bool doOutline) {
+  TLatex l;
+  l.SetTextAlign (12);
+  l.SetTextSize (tsize); 
+  l.SetNDC ();
+  l.DrawLatex (x, y, text);
+
+  double y1 = y;
+  double y2 = y + 0.7*tsize;
+  double x2 = x - 0.8*tsize-0.03;
+  double x1 = x - 0.8*tsize+0.03;
+
+  //printf ("x1= %f x2= %f y1= %f y2= %f \n", x1, x2, y1, y2);
+
+  TPave* mbox= new TPave (x1, y1, x2, y2, 0, "NDC");
+
+  mbox->SetLineColor (color);
+  mbox->SetLineWidth (1);
+  mbox->Draw ();
+
+  TMarker* marker = new TMarker (0.5*(x1+x2), 0.5*(y1+y2), 8);
+  marker->SetMarkerColor (color);
+  marker->SetNDC ();
+  marker->SetMarkerStyle (mstyle);
+  marker->SetMarkerSize (msize);
+  marker->Draw ();
+
+  //TLine* markerLine = new TLine (x-(0.8*tsize)-0.02, y, x-(0.8*tsize)+0.02, y);
+  TLine* markerLine = new TLine (x1+0.01, 0.5*(y1+y2), x2-0.01, 0.5*(y1+y2));
+  markerLine->SetNDC ();
+  markerLine->SetLineColor (color);
+  markerLine->SetLineStyle (1);
+  markerLine->SetLineWidth (2);
+  markerLine->Draw ();
+
+  if (doOutline && IsFullMarker (mstyle)) {
+    //TMarker* marker2 = new TMarker (x-(0.8*tsize), y, 8);
+    TMarker* marker2 = new TMarker (0.5*(x1+x2), 0.5*(y1+y2), 8);
+    marker2->SetMarkerColor (kBlack);
+    marker2->SetNDC ();
+    marker2->SetMarkerStyle (FullToOpenMarker (mstyle));
+    marker2->SetMarkerSize (msize);
+    marker2->Draw ();
+  }
+
+  TLine mline;
+  mline.SetLineWidth (4);
+  mline.SetLineColor (color);
+  mline.SetLineStyle (1);
+  mline.DrawLineNDC (x1, y1, x2, y2);
+}
+
+
+
+
 void myBoxTextNoLine (double x, double y, double boxsize, int mcolor, const char* text, const double tsize) {
   TLatex l;
   l.SetTextAlign (12);

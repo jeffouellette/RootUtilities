@@ -291,6 +291,8 @@ void myText (double x, double y,  Color_t color, const char *text, double tsize=
 
 void myBoxText (double x, double y, double boxsize, int mcolor, const char *text, const double tsize=0.06);
 
+void myBoxText2 (double x, double y, int color, int mstyle, const char *text, float msize=1.25, double tsize=0.032, bool doOutline=false);
+
 void myBoxTextNoLine (double x, double y, double boxsize, int mcolor, const char *text, const double tsize=0.06);
 
 void myLineText (double x, double y, int color, int lstyle, const char *text, float lsize, double tsize);
