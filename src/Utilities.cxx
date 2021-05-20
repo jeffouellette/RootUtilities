@@ -1112,8 +1112,8 @@ void myBoxText2 (double x, double y, int color, int mstyle, const char* text, fl
 
   double y1 = y - 0.5*tsize;
   double y2 = y + 0.5*tsize;
-  double x1 = x - 0.8*tsize-0.024;
-  double x2 = x - 0.8*tsize+0.024;
+  double x1 = x - 0.061;
+  double x2 = x - 0.013;
 
   TPave* mbox= new TPave (x1, y1, x2, y2, 1, "NDC");
   mbox->SetLineColor (color);
