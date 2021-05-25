@@ -13,6 +13,8 @@ const Color_t colors[] = {myBlue, myGreen, myOrange, myRed, myPurple};
 const int nColors = sizeof (colors) / sizeof (colors[0]);
 const Color_t systColors[] = {kRed+1, kAzure-2, kGreen+2, kViolet-3, kMagenta, kCyan+1, kOrange-3, kGreen-7, kBlue+1, kPink-5};
 const int nSystColors = sizeof (systColors) / sizeof (systColors[0]);
+const Color_t manyColors[] = {kRed+1, kPink-3, kPink+9, kPink+6, kMagenta-3, kViolet-3, kViolet+7, kBlue+1, kAzure-2, kAzure+7, kAzure+6, kCyan-7, kTeal, kTeal-5, kGreen-3, kSpring+7, kSpring+5, kYellow-3, kYellow, kOrange-2, kOrange-3, kOrange+6, kOrange+10};
+const int nManyColors = sizeof (manyColors) / sizeof (manyColors[0]);
 
 
 #endif
