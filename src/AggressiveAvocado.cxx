@@ -8,7 +8,7 @@
 #include "TROOT.h"
 
 
-void SetAggressiveAvocado () {
+void SetAggressiveAvocadoStyle () {
   static TStyle* aggAvocadoStyle = 0;
   std::cout << "\nReluctantly applying esoteric avocodo-derived plot style settings...\n" << std::endl ;
   if ( aggAvocadoStyle==0 ) aggAvocadoStyle = AggressiveAvocadoStyle();
