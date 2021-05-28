@@ -8,6 +8,9 @@ const Color_t myPurple = (Color_t) TColor::GetColor (130,  10, 130);
 const Color_t myRed = (Color_t) TColor::GetColor (255,  12,  73);
 const Color_t myGreen = (Color_t) TColor::GetColor ( 54, 167,  80);
 const Color_t myOrange = (Color_t) TColor::GetColor (255,  68,   0);
+const Color_t myLiteRed = (Color_t) TColor::GetColor (255, 153, 153);
+const Color_t myCyan = (Color_t) TColor::GetColor (102, 204, 204);
+const Color_t myLitePurple = (Color_t) TColor::GetColor (204, 102, 255);
 
 const Color_t colors[] = {myBlue, myGreen, myOrange, myRed, myPurple};
 const int nColors = sizeof (colors) / sizeof (colors[0]);

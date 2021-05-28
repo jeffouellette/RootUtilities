@@ -1192,6 +1192,45 @@ void myLineText (double x, double y, int color, int lstyle, const char* text, fl
 
 
 
+void myLineText2 (double x, double y, int color, int mstyle, const char* text, float msize, double tsize, bool doOutline) {
+  TLatex l;
+  l.SetTextAlign (12);
+  l.SetTextSize (tsize); 
+  l.SetNDC ();
+  l.DrawLatex (x, y, text);
+
+  double y1 = y - 0.5*tsize;
+  double y2 = y + 0.5*tsize;
+  double x1 = x - 0.061;
+  double x2 = x - 0.013;
+
+  TLine* markerLine = new TLine ();
+  markerLine->SetLineColor (color);
+  markerLine->SetLineStyle (1);
+  markerLine->SetLineWidth (2);
+  markerLine->DrawLineNDC (0.5*(x1+x2), y1, 0.5*(x1+x2), y2);
+
+  TMarker* marker = new TMarker (0.5*(x1+x2), 0.5*(y1+y2), 8);
+  marker->SetMarkerColor (color);
+  marker->SetNDC ();
+  marker->SetMarkerStyle (mstyle);
+  marker->SetMarkerSize (msize);
+  marker->Draw ();
+
+  if (doOutline && IsFullMarker (mstyle)) {
+    //TMarker* marker2 = new TMarker (x-(0.8*tsize), y, 8);
+    TMarker* marker2 = new TMarker (0.5*(x1+x2), 0.5*(y1+y2), 8);
+    marker2->SetMarkerColor (kBlack);
+    marker2->SetNDC ();
+    marker2->SetMarkerStyle (FullToOpenMarker (mstyle));
+    marker2->SetMarkerSize (msize);
+    marker2->Draw ();
+  }
+}
+
+
+
+
 void myLineColorText (double x, double y, int color, int lstyle, const char* text, float lsize, double tsize) {
   TLine *markerLine = new TLine(x-(0.8*tsize)-0.02*lsize, y, x-(0.8*tsize)+0.02*lsize, y);
   markerLine->SetNDC ();
