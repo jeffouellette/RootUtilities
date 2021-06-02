@@ -260,6 +260,24 @@ void RebinSomeBins (TH1D** _h, int nbins, double* bins);
 
 
 /**
+ * Draws histogram as a graph with some plotting settings.
+ */
+void myDraw (TH1D* h, const Color_t col, const Style_t mstyle, const float msize, const Style_t lstyle = 1, const int lwidth = 2);
+
+
+/**
+ * Draws a graph with some plotting settings.
+ */
+void myDraw (TGAE* g, const Color_t col, const Style_t mstyle, const float msize, const Style_t lstyle = 1, const int lwidth = 2);
+
+
+/**
+ * Draws a graph as a systematic with some plotting settings.
+ */
+void myDrawSyst (TGAE* g, const Color_t col, const Style_t lstyle = 1, const int lwidth = 1);
+
+
+/**
  * Adds a to h without propagating errors (e.g. for subtracting a background)
  */
 void AddNoErrors (TH1D* h, TH1D* a, const float sf = 1.);

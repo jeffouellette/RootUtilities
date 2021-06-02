@@ -892,6 +892,53 @@ void RebinSomeBins (TH1D** _h, int nbins, double* bins) {
 
 
 /**
+ * Draws histogram as a graph with some plotting settings.
+ */
+void myDraw (TH1D* h, const Color_t col, const Style_t mstyle, const float msize, const Style_t lstyle, const int lwidth) {
+  TGAE* g = make_graph (h);
+  myDraw (g, col, mstyle, msize, lstyle, lwidth);
+  SaferDelete (&g);
+  return;
+} 
+
+
+/**
+ * Draws a graph with some plotting settings.
+ */
+void myDraw (TGAE* g, const Color_t col, const Style_t mstyle, const float msize, const Style_t lstyle, const int lwidth) {
+  g->SetLineColor (col);
+  g->SetMarkerColor (col);
+  g->SetMarkerStyle (mstyle);
+  g->SetMarkerSize (msize);
+  g->SetLineStyle (lstyle);
+  g->SetLineWidth (lwidth);
+  ((TGAE*) g->Clone ())->Draw ("p");
+
+  if (IsFullMarker (mstyle) && col != kBlack) {
+    g->SetLineWidth (0);
+    g->SetMarkerColor (kBlack);
+    g->SetMarkerStyle (FullToOpenMarker (g->GetMarkerStyle ()));
+    ((TGAE*) g->Clone ())->Draw ("p");
+  }
+  return;
+} 
+
+
+/**
+ * Draws a graph as a systematic with some plotting settings.
+ */
+void myDrawSyst (TGAE* g, const Color_t col, const Style_t lstyle, const int lwidth) {
+  g->SetLineColor (col);
+  g->SetMarkerStyle (0);
+  g->SetMarkerSize (0);
+  g->SetLineStyle (lstyle);
+  g->SetLineWidth (lwidth);
+  ((TGAE*) g->Clone ())->Draw ("5");
+  return;
+} 
+
+
+/**
  * Adds a to h without propagating errors (e.g. for subtracting a background)
  */
 void AddNoErrors (TH1D* h, TH1D* a, const float sf) {
