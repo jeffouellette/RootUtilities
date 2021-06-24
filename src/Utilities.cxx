@@ -172,6 +172,8 @@ void SetVariances (TH1D* h, TH2D* h2) {
   assert (nb == h2->GetNbinsX () && nb == h2->GetNbinsY ());
 
   for (int iX = 1; iX <= nb; iX++) {
+    if (isnan (h2->GetBinContent (iX, iX)) || h2->GetBinContent (iX, iX) < 0)
+      std::cout << "Problem detected with covariance matrix " << h2->GetName () << std::endl; 
     assert (h2->GetBinContent (iX, iX) >= 0);
     h->SetBinError (iX, sqrt (h2->GetBinContent (iX, iX)));
   }
