@@ -48,7 +48,7 @@ void SetVariances (TH1D* h, TH2D* h2);
 /**
  * Divides two histograms assuming the entries in one are binomial samples of the other.
  */
-void BinomialDivide (TH1* out, TH1* num, TH1* den);
+void BinomialDivide (TH1* out, TH1* num, TH1* den, TH1* den_unwgt);
 
 
 /**
