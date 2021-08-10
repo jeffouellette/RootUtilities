@@ -47,11 +47,11 @@ const char* FormatMeasurement (double val, double err, const int n) {
     }
 
     if (valDec > n) { // if decimal is after least significant digit
-      const double factorOfTen = pow (10, n-valDec); // e.g., for "1520" and n=2, get 0.01
+      const double factorOfTen = std::pow (10, n-valDec); // e.g., for "1520" and n=2, get 0.01
       val = floor (factorOfTen * val + 0.5) / factorOfTen;
     }
     else { // if decimal is before least significant digit, e.g. for "15.24" and n=3.
-      const double factorOfTen = pow (10, n-valDec+1); // e.g. for 15.24 and n=3 get 10
+      const double factorOfTen = std::pow (10, n-valDec+1); // e.g. for 15.24 and n=3 get 10
       val = floor (factorOfTen * val + 0.5) / factorOfTen;
     }
     return Form ("%g", val);
@@ -65,7 +65,7 @@ const char* FormatMeasurement (double val, double err, const int n) {
     errStart = errStart - 2; // first 2 characters are necessarly "0."
 
     // round the value and error to the appropriate decimal place
-    const double factorOfTen = pow (10, errStart+n);
+    const double factorOfTen = std::pow (10, errStart+n);
     val = floor (factorOfTen * val + 0.5) / factorOfTen;
     err = floor (factorOfTen * err + 0.5) / factorOfTen;
 
@@ -102,7 +102,7 @@ const char* FormatMeasurement (double val, double err, const int n) {
 
     // round the value and error to the appropriate decimal place
     if (errDec < (short)errStr.length() - 1) {
-      const double factorOfTen = pow (10., n - errDec);
+      const double factorOfTen = std::pow (10., n - errDec);
       if (n - errDec >= 0) {
         val = floor (factorOfTen * val + 0.5) / factorOfTen;
         err = floor (factorOfTen * err + 0.5) / factorOfTen;
@@ -135,7 +135,7 @@ void FormatMeasurement (string& s_val, string& s_stat, string& s_syst, const int
   double syst = atof (s_syst.c_str ());
 
   int i = 0;
-  while (fabs (stat) < pow (10, n-1) || fabs (syst) < pow (10, n-1) && i < 10) { // i < 10 as an arbitrary cut (so this doesn't go forever)
+  while (std::fabs (stat) < std::pow (10, n-1) || std::fabs (syst) < std::pow (10, n-1) && i < 10) { // i < 10 as an arbitrary cut (so this doesn't go forever)
     val *= 10;
     stat *= 10;
     syst *= 10;
@@ -146,9 +146,9 @@ void FormatMeasurement (string& s_val, string& s_stat, string& s_syst, const int
   stat = round (stat);
   syst = round (syst);
 
-  val = val / pow (10, i);
-  stat = stat / pow (10, i);
-  syst = syst / pow (10, i);
+  val = val / std::pow (10, i);
+  stat = stat / std::pow (10, i);
+  syst = syst / std::pow (10, i);
 
   s_val = to_string (val);
   s_stat = to_string (stat);
@@ -175,7 +175,7 @@ void SetVariances (TH1D* h, TH2D* h2) {
     if (isnan (h2->GetBinContent (iX, iX)) || h2->GetBinContent (iX, iX) < 0)
       std::cout << "Problem detected with covariance matrix " << h2->GetName () << std::endl; 
     assert (h2->GetBinContent (iX, iX) >= 0);
-    h->SetBinError (iX, sqrt (h2->GetBinContent (iX, iX)));
+    h->SetBinError (iX, std::sqrt (h2->GetBinContent (iX, iX)));
   }
 }
 
@@ -183,23 +183,23 @@ void SetVariances (TH1D* h, TH2D* h2) {
 /**
  * Divides two histograms assuming the entries in one are binomial samples of the other.
  */
-void BinomialDivide (TH1* out, TH1* num, TH1* den, TH1* den_unwgt) {
+void BinomialDivide (TH1* out, TH1* num, TH1* den, TH1* h_sumwgt2) {
   assert (out->GetNbinsX () == num->GetNbinsX ());
   assert (out->GetNbinsX () == den->GetNbinsX ());
-  assert (den_unwgt == nullptr || out->GetNbinsX () == den_unwgt->GetNbinsX ());
+  assert (h_sumwgt2 == nullptr || out->GetNbinsX () == h_sumwgt2->GetNbinsX ());
   assert (out->GetNbinsY () == num->GetNbinsY ());
   assert (out->GetNbinsY () == den->GetNbinsY ());
-  assert (den_unwgt == nullptr || out->GetNbinsY () == den_unwgt->GetNbinsY ());
+  assert (h_sumwgt2 == nullptr || out->GetNbinsY () == h_sumwgt2->GetNbinsY ());
 
   for (int iX = 1; iX <= out->GetNbinsX (); iX++) {
     for (int iY = 1; iY <= out->GetNbinsY (); iY++) {
 
       const double passes = num->GetBinContent (iX, iY);
       const double trials = den->GetBinContent (iX, iY);
-      const double trials_unwgt = den_unwgt->GetBinContent (iX, iY);
+      const double sumwgt2 = h_sumwgt2->GetBinContent (iX, iY);
       const double rate = passes/trials;
       out->SetBinContent (iX, iY, rate);
-      out->SetBinError (iX, iY, sqrt ((rate*(1.-rate))/trials_unwgt)); // normal approximation to uncertainty on efficiency
+      out->SetBinError (iX, iY, std::sqrt ((rate*(1.-rate))*sumwgt2/std::pow(trials,2))); // normal approximation to uncertainty on efficiency
     }
   }
   return;
@@ -260,8 +260,8 @@ double InTwoPi (double phi) {
 double DeltaPhi (double phi1, double phi2, const bool sign) {
   phi1 = InTwoPi(phi1);
   phi2 = InTwoPi(phi2);
-  double dphi = abs(phi1 - phi2);
-  while (dphi > M_PI) dphi = abs (dphi - 2*M_PI);
+  double dphi = std::abs(phi1 - phi2);
+  while (dphi > M_PI) dphi = std::abs (dphi - 2*M_PI);
 
   if (sign && InTwoPi (phi2 + dphi) == phi1)
      dphi *= -1;
@@ -276,7 +276,7 @@ double DeltaPhi (double phi1, double phi2, const bool sign) {
 double DeltaR (const double eta1, const double eta2, const double phi1, const double phi2 ) {
  const double deta = eta1 - eta2;
  const double dphi = DeltaPhi (phi1, phi2, false);
- return sqrt( pow( deta, 2 ) + pow( dphi, 2 ) );
+ return std::sqrt( std::pow( deta, 2 ) + std::pow( dphi, 2 ) );
 }
 
 
@@ -319,6 +319,8 @@ void ResetXErrors (TGAE* tg) {
 void CalcUncertainties (TH1D* h, TH2D* h2, const double n) {
   if (n <= 1)
     std::cout << "Warning: n <= 1 for histograms " << h->GetName () << " and " << h2->GetName () << std::endl;
+  if (n == 0)
+    return; // if no counts just return
   assert (n > 1); // check number of entries is at least 1 (otherwise the sample variance is undefined!)
   assert (h->GetNbinsX () == h2->GetNbinsX ());  // check h2 is a valid sum(x^2) of h.
   assert (h2->GetNbinsX () == h2->GetNbinsY ()); // check h2 is "square" -- same bins in X & Y.
@@ -327,7 +329,7 @@ void CalcUncertainties (TH1D* h, TH2D* h2, const double n) {
     for (int iY = 1; iY <= h2->GetNbinsY (); iY++)
       h2->SetBinContent (iX, iY, h2->GetBinContent (iX, iY) - n * (h->GetBinContent (iX)) * (h->GetBinContent (iY)));
   h->Scale (1., "width");
-  h2->Scale (pow (n*(n-1.), -1), "width");
+  h2->Scale (std::pow (n*(n-1.), -1), "width");
   SetVariances (h, h2);
   return;
 }
@@ -347,6 +349,8 @@ void CalcUncertainties (TH1D* h, TH2D* h2, TH1D* hn) {
 
   if (n0 <= 1)
     std::cout << "Warning: n0 <= 1 for histograms " << h->GetName () << " and " << h2->GetName () << std::endl;
+  if (n0 == 0)
+    return; // if no counts just return
   assert (n0 > 1); // check number of entries is at least 1 (otherwise the sample variance is undefined!)
 
   h->Scale (1./n1);
@@ -354,7 +358,7 @@ void CalcUncertainties (TH1D* h, TH2D* h2, TH1D* hn) {
     for (int iY = 1; iY <= h2->GetNbinsY (); iY++)
       h2->SetBinContent (iX, iY, h2->GetBinContent (iX, iY) - n1 * (h->GetBinContent (iX)) * (h->GetBinContent (iY)));
   h->Scale (1., "width");
-  h2->Scale (pow (n0*(n1*n1-n2)/n1, -1), "width");
+  h2->Scale (std::pow (n0*(n1*n1-n2)/n1, -1), "width");
   SetVariances (h, h2);
   return;
 }
@@ -369,8 +373,8 @@ void AddMaxSystematic (TGAE* sys, TGAE* v1, TGAE* v2) {
   for (int ix = 0; ix < sys->GetN (); ix++) {
     double upErr = fmax (v1->GetErrorYhigh (ix), v2->GetErrorYhigh (ix));
     double downErr = fmax (v1->GetErrorYlow (ix), v2->GetErrorYlow (ix));
-    sys->SetPointEYhigh (ix, sqrt (pow (sys->GetErrorYhigh (ix), 2) + pow (upErr, 2)));
-    sys->SetPointEYlow (ix, sqrt (pow (sys->GetErrorYlow (ix), 2) + pow (downErr, 2)));
+    sys->SetPointEYhigh (ix, std::sqrt (std::pow (sys->GetErrorYhigh (ix), 2) + std::pow (upErr, 2)));
+    sys->SetPointEYlow (ix, std::sqrt (std::pow (sys->GetErrorYlow (ix), 2) + std::pow (downErr, 2)));
   }
   return;
 }
@@ -400,7 +404,7 @@ void AddErrorsInQuadrature (TH1D* master, TH1D* sys) {
     if (master->GetBinContent (ix) != sys->GetBinContent (ix))
       cout << "Warning: In Utilities.cxx::AddErrorsInQuadrature: unequal nominal bin contents between systematics! Results will be skewed." << endl;
 
-    const float newErr = sqrt (pow (master->GetBinError (ix), 2) + pow (sys->GetBinError (ix), 2));
+    const float newErr = std::sqrt (std::pow (master->GetBinError (ix), 2) + std::pow (sys->GetBinError (ix), 2));
     master->SetBinError (ix, newErr);
   }
 }
@@ -409,7 +413,32 @@ void AddErrorsInQuadrature (TH1D* master, TH1D* sys) {
 /**
  * Adds independent systematic errors in quadrature, storing the sum in master
  */
-void AddErrorsInQuadrature (TGAE* master, TGAE* sys, const bool doXErrs) {
+void AddErrorsInQuadrature (TGAE* master, TH1D* nom, TH1D* sys) {
+  assert (nom->GetNbinsX () == sys->GetNbinsX ());
+  assert (nom->GetNbinsX () == master->GetN ());
+  double eym, eys, newErr;
+  for (int ix = 0; ix < master->GetN (); ix++) {
+    eys = sys->GetBinContent (ix+1) - nom->GetBinContent (ix+1);
+
+    {
+      eym = master->GetErrorYhigh (ix);
+      newErr = std::sqrt (eym*eym + eys*eys);
+      master->SetPointEYhigh (ix, newErr);
+    }
+    {
+      eym = master->GetErrorYlow (ix);
+      newErr = std::sqrt (eym*eym + eys*eys);
+      master->SetPointEYlow (ix, newErr);
+    }
+  }
+  return;
+}
+
+
+/**
+ * Adds independent systematic errors in quadrature, storing the sum in master
+ */
+void AddErrorsInQuadrature (TGAE* master, TGAE* sys, const bool doXErrs, const bool symmetrize) {
   for (int ix = 0; ix < master->GetN (); ix++) {
     //double xm=0, ym=0, xs=0, ys=0;
     //master->GetPoint (ix, xm, ym);
@@ -417,19 +446,82 @@ void AddErrorsInQuadrature (TGAE* master, TGAE* sys, const bool doXErrs) {
 
     //if (xm != xs || ym != ys)
     //  cout << "Warning: In Utilities.cxx::AddErrorsInQuadrature: Bins don't match!" << endl;
-
-    float newErr = sqrt (pow (master->GetErrorYhigh (ix), 2) + pow (sys->GetErrorYhigh (ix), 2));
+    //
+    float newErr = std::sqrt (std::pow (master->GetErrorYhigh (ix), 2) + std::pow (std::fmax (sys->GetErrorYhigh (ix), symmetrize ? sys->GetErrorYlow (ix) : 0), 2));
     master->SetPointEYhigh (ix, newErr);
-    newErr = sqrt (pow (master->GetErrorYlow (ix), 2) + pow (sys->GetErrorYlow (ix), 2));
+    newErr = std::sqrt (std::pow (master->GetErrorYlow (ix), 2) + std::pow (std::fmax (sys->GetErrorYlow (ix), symmetrize ? sys->GetErrorYhigh (ix) : 0), 2));
     master->SetPointEYlow (ix, newErr);
 
     if (doXErrs) {
-      newErr = sqrt (pow (master->GetErrorXhigh (ix), 2) + pow (sys->GetErrorXhigh (ix), 2));
+      newErr = std::sqrt (std::pow (master->GetErrorXhigh (ix), 2) + std::pow (sys->GetErrorXhigh (ix), 2));
       master->SetPointEXhigh (ix, newErr);
-      newErr = sqrt (pow (master->GetErrorXlow (ix), 2) + pow (sys->GetErrorXlow (ix), 2));
+      newErr = std::sqrt (std::pow (master->GetErrorXlow (ix), 2) + std::pow (sys->GetErrorXlow (ix), 2));
       master->SetPointEXlow (ix, newErr);
     }
   }
+}
+
+
+/**
+ * Adds independent systematic errors in quadrature, storing the sum in master
+ * Allows user to send an array of systematics, not necessarily in order, and only adds the maximum uncertainty from these.
+ */
+void AddErrorsInQuadrature (TGAE* master, TGAE** sys, const std::vector <int>* indices, const bool symmetrize) {
+  assert (indices->size () >= 1);
+  
+  std::vector <double> eyhi (master->GetN ());
+  std::vector <double> eylo (master->GetN ());
+
+  for (int index : *indices) {
+    for (int ix = 0; ix < sys[index]->GetN (); ix++) {
+      eyhi[ix] = std::fmax (eyhi[ix], std::fmax (sys[index]->GetErrorYhigh (ix), symmetrize ? sys[index]->GetErrorYlow (ix) : 0));
+      eylo[ix] = std::fmax (eylo[ix], std::fmax (sys[index]->GetErrorYlow (ix), symmetrize ? sys[index]->GetErrorYhigh (ix) : 0));
+    }
+  }
+
+  for (int ix = 0; ix < master->GetN (); ix++) {
+    float newErr = std::sqrt (std::pow (master->GetErrorYhigh (ix), 2) + std::pow (eyhi[ix], 2));
+    master->SetPointEYhigh (ix, newErr);
+    newErr = std::sqrt (std::pow (master->GetErrorYlow (ix), 2) + std::pow (eylo[ix], 2));
+    master->SetPointEYlow (ix, newErr);
+  }
+}
+
+
+/**
+ * Adds independent relative systematic errors in quadrature, storing the sum in master
+ */
+void AddRelErrorsInQuadrature (TGAE* master, TGAE* sys, const bool ignoreWarning, const bool symmetrize) {
+  assert (master->GetN () == sys->GetN ());
+  double xm, ym, xs, ys, eym, eys, newErr;
+  for (int ix = 0; ix < master->GetN (); ix++) {
+
+    master->GetPoint (ix, xm, ym);
+    sys->GetPoint (ix, xs, ys);
+
+    if (xm != xs && !ignoreWarning)
+      cout << "Warning: In Utilities.cxx::AddRelErrorsInQuadrature: Bins don't match!" << endl;
+
+    {
+      eym = master->GetErrorYhigh (ix);
+      eys = std::fmax (sys->GetErrorYhigh (ix), symmetrize ? sys->GetErrorYlow (ix) : 0);
+      // convert to relative uncertainties
+      if (ym != 0) eym = eym / ym;
+      if (ys != 0) eys = eys / ys;
+      newErr = std::sqrt (eym*eym + eys*eys);
+      master->SetPointEYhigh (ix, newErr);
+    }
+    {
+      eym = master->GetErrorYlow (ix);
+      eys = std::fmax (sys->GetErrorYlow (ix), symmetrize ? sys->GetErrorYhigh (ix) : 0);
+      // convert to relative uncertainties
+      if (ym != 0) eym = eym / ym;
+      if (ys != 0) eys = eys / ys;
+      newErr = std::sqrt (eym*eym + eys*eys);
+      master->SetPointEYlow (ix, newErr);
+    }
+  }
+  return;
 }
 
 
@@ -439,7 +531,7 @@ void AddErrorsInQuadrature (TGAE* master, TGAE* sys, const bool doXErrs) {
  */
 void CalcSystematics (TH1D* sys, TH1D* var) {
   for (int ix = 1; ix <= sys->GetNbinsX (); ix++) {
-    const float newErr = fabs (var->GetBinContent (ix) - sys->GetBinContent (ix));
+    const float newErr = std::fabs (var->GetBinContent (ix) - sys->GetBinContent (ix));
     sys->SetBinError (ix, fmax (newErr, sys->GetBinError (ix)));
   }
 }
@@ -457,10 +549,10 @@ void CalcSystematics (TGAE* sys, TH1D* var, const bool applyBothWays) {
     const float newErr = var->GetBinContent (ix+1) - y;
 
     if (applyBothWays || newErr > 0) {
-      sys->SetPointEYhigh (ix, fmax (fabs (newErr), sys->GetErrorYhigh (ix)));
+      sys->SetPointEYhigh (ix, fmax (std::fabs (newErr), sys->GetErrorYhigh (ix)));
     }
     if (applyBothWays || newErr < 0) {
-      sys->SetPointEYlow (ix, fmax (fabs (newErr), sys->GetErrorYlow (ix)));
+      sys->SetPointEYlow (ix, fmax (std::fabs (newErr), sys->GetErrorYlow (ix)));
     }
   }
 }
@@ -478,10 +570,10 @@ void CalcSystematics (TGAE* sys, TH1D* nom, TH1D* var) {
 
     sys->SetPoint (ix, x, y);
 
-    const float newErr = fabs (var->GetBinContent (ix+1) - y);
+    const float newErr = var->GetBinContent (ix+1) - y;
 
-    sys->SetPointEYhigh (ix, newErr);
-    sys->SetPointEYlow (ix, newErr);
+    if (newErr > 0) sys->SetPointEYhigh (ix, newErr);
+    else            sys->SetPointEYlow (ix, -newErr);
     sys->SetPointEXhigh (ix, nom->GetBinWidth (ix+1) * 0.5);
     sys->SetPointEXlow (ix, nom->GetBinWidth (ix+1) * 0.5);
   }
@@ -512,8 +604,8 @@ void CalcSystematics (TGAE* graph, TH1* optimal, const TH1* sys_hi, const TH1* s
       graph->SetPointEYhigh (ix-1, err_hi);
     }
     else {
-      graph->SetPointEYlow (ix-1, sqrt (0.5*(err_lo*err_lo + err_hi*err_hi)));
-      graph->SetPointEYhigh (ix-1, sqrt (0.5*(err_lo*err_lo + err_hi*err_hi)));
+      graph->SetPointEYlow (ix-1, std::sqrt (0.5*(err_lo*err_lo + err_hi*err_hi)));
+      graph->SetPointEYhigh (ix-1, std::sqrt (0.5*(err_lo*err_lo + err_hi*err_hi)));
     }
 
   }
@@ -541,7 +633,7 @@ void CalcSystematics (TGAE* graph, TGAE* optimal, const TGraph* sys_hi, const TG
       graph->SetPointEXhigh (ix, optimal->GetErrorXhigh (ix));
     }
     else {
-      const double xerr = fmax (fabs (xh - x), fabs (x - xl));
+      const double xerr = fmax (std::fabs (xh - x), std::fabs (x - xl));
       graph->SetPointEXlow (ix, xerr);
       graph->SetPointEXhigh (ix, xerr);
     }
@@ -555,9 +647,32 @@ void CalcSystematics (TGAE* graph, TGAE* optimal, const TGraph* sys_hi, const TG
       graph->SetPointEYhigh (ix, err_hi);
     }
     else {
-      graph->SetPointEYlow (ix, sqrt (0.5*(err_lo*err_lo + err_hi*err_hi)));
-      graph->SetPointEYhigh (ix, sqrt (0.5*(err_lo*err_lo + err_hi*err_hi)));
+      graph->SetPointEYlow (ix, std::sqrt (0.5*(err_lo*err_lo + err_hi*err_hi)));
+      graph->SetPointEYhigh (ix, std::sqrt (0.5*(err_lo*err_lo + err_hi*err_hi)));
     }
+  }
+  return;
+}
+
+
+/**
+ * Sets the bin contents in target as the errors in errors / central values in centralValues
+ */
+void SaveRelativeErrors (TGAE* target, TGAE* errors, TGAE* centralValues, const float sf) {
+  assert (target->GetN () == errors->GetN ());
+  assert (target->GetN () == centralValues->GetN ());
+
+  double x, y, eyhi, eylo;
+  for (int i = 0; i < target->GetN (); i++) {
+    centralValues->GetPoint (i, x, y);
+    if (y == 0) errors->GetPoint (i, x, y); // if 0 then take y from errors instead
+    if (y == 0) y = 1; // if still 0 set to 1 to avoid divide by 0
+    eyhi = errors->GetErrorYhigh (i);
+    eylo = errors->GetErrorYlow (i);
+    if (eyhi > eylo)      target->SetPoint (i, x, sf * eyhi / y);
+    else if (eylo > eyhi) target->SetPoint (i, x, -sf * eylo / y);
+    else if (eylo == 0)   target->SetPoint (i, x, 0);
+    else std::cout << "not sure waht to do, please instruct!" << std::endl;
   }
   return;
 }
@@ -616,6 +731,25 @@ void SaveRelativeErrors (TGAE* errors, TGAE* centralValues, TH1D* highs, TH1D* l
 }
 
 
+/**
+ * Returns a TGAE with central values equal to the uncertainties in g.
+ */
+TGAE* ConvertErrorsToCentralValues (TGAE* g, const bool doHighErrs, const float sf) {
+  TGAE* gnew = (TGAE*) g->Clone ();
+
+  ResetTGAEErrors (gnew);
+  ResetXErrors (gnew);
+  double x, y;
+  for (int ix = 0; ix < gnew->GetN (); ix++) {
+    gnew->GetPoint (ix, x, y);
+    if (y != 0)
+      gnew->SetPoint (ix, x, sf * (doHighErrs ? g->GetErrorYhigh (ix) : -g->GetErrorYlow (ix)) / y);
+  }
+
+  return gnew;
+}
+
+
 
 /**
  * Creates a projection of a TH3 with the specified axes by integrating between min and max on the 3rd axis of the TH3.
@@ -668,12 +802,12 @@ TH2D* Project2D (TString name, TH3D* h3, const TString xaxis, const TString yaxi
      else if (xaxis == "z" && yaxis == "y") { h3iz = ix; h3iy = iy; h3ix = iz; }
 
      content += h3->GetBinContent (h3ix, h3iy, h3iz);
-     var += pow (h3->GetBinError (h3ix, h3iy, h3iz), 2);
+     var += std::pow (h3->GetBinError (h3ix, h3iy, h3iz), 2);
 
     } // end loop over extra axis
 
     h2->SetBinContent (ix, iy, content);
-    h2->SetBinError (ix, iy, sqrt (var));
+    h2->SetBinError (ix, iy, std::sqrt (var));
    }
   }
 
@@ -687,6 +821,7 @@ TH2D* Project2D (TString name, TH3D* h3, const TString xaxis, const TString yaxi
 
   return h2;
 }
+
 
 
 /**
@@ -705,18 +840,19 @@ void deltaize (TGAE* tg, const double delta, const bool logx, const double x1, c
     exh = x + tg->GetErrorXhigh (n);
     exl = x - tg->GetErrorXlow (n);
 
-    if (logx && useX2OverX1Factor) tg->SetPoint (n, x * exp (0.5 * delta * log (x2/x1)), y);
+    if (logx && useX2OverX1Factor) tg->SetPoint (n, x * std::exp (0.5 * delta * std::log (x2/x1)), y);
     else if (logx) tg->SetPoint (n, x*delta, y);
     else tg->SetPoint (n, x + delta, y);
 
     tg->GetPoint (n, x, y);
-    exh = fabs (exh - x);
-    exl = fabs (x - exl);
+    exh = std::fabs (exh - x);
+    exl = std::fabs (x - exl);
 
     tg->SetPointEXhigh (n, exh);
     tg->SetPointEXlow (n, exl);
   }
 }
+
 
 
 /**
@@ -746,6 +882,7 @@ void OffsetYAxis (TGAE* g, const double delta, const bool logx) {
 }
 
 
+
 /**
  * Sets each point error to some constant value.
  * If mult is true, then will be multiplicative (intended for a log scale).
@@ -761,12 +898,12 @@ void SetConstantXErrors (TGAE* tg, const double err, const bool mult, const doub
   for (int n = 0; n < tg->GetN (); n++) {
     tg->GetPoint (n, x, y);
     if (mult && useX2OverX1Factor) {
-      exh = fabs (x * (exp (0.5*err * log (x2/x1)) - 1));
-      exl = fabs (x * (1 - exp (-0.5*err * log(x2/x1))));
+      exh = std::fabs (x * (std::exp (0.5*err * std::log (x2/x1)) - 1));
+      exl = std::fabs (x * (1 - std::exp (-0.5*err * std::log(x2/x1))));
     }
     else if (mult) {
-      exh = fabs (x * (exp (0.5*err) - 1));
-      exl = fabs (x * (1 - exp (-0.5*err)));
+      exh = std::fabs (x * (std::exp (0.5*err) - 1));
+      exl = std::fabs (x * (1 - std::exp (-0.5*err)));
     }
     else {
       exh = err;
@@ -777,6 +914,7 @@ void SetConstantXErrors (TGAE* tg, const double err, const bool mult, const doub
   }
   return;
 }
+
 
 
 /**
@@ -803,6 +941,7 @@ TGAE* make_graph (TH1* h, const float cutoff) {
 }
 
 
+
 /**
  * Converts a TEfficiency to a TGAE
  */
@@ -820,6 +959,7 @@ TGAE* TEff2TGAE (TEfficiency* e) {
 }
 
 
+
 /**
  * Recenters a TGraph according to the midpoints of matched
  */
@@ -835,6 +975,7 @@ void RecenterGraph (TGraph* g, TGraph* matched) {
 }
 
 
+
 /**
  * Recenters a TGAE point for a log scale.
  */
@@ -844,8 +985,8 @@ void RecenterGraph (TGAE* g) {
     g->GetPoint (n, x, y);
     xlo = x - g->GetErrorXlow (n);
     xhi = x + g->GetErrorXhigh (n);
-    logDelta = log10 (xhi) - log10 (xlo);
-    newx = pow (10, log10 (xlo) + 0.5*logDelta);
+    logDelta = std::log10 (xhi) - std::log10 (xlo);
+    newx = std::pow (10, log10 (xlo) + 0.5*logDelta);
     g->SetPoint (n, newx, y);
     g->SetPointEXlow (n, newx-xlo);
     g->SetPointEXhigh (n, xhi-newx);
@@ -853,11 +994,43 @@ void RecenterGraph (TGAE* g) {
 }
 
 
+
+/**
+ * Scales a TGAE and its errors by the central values in a TH1D and/or a constant.
+ */
+void ScaleGraph (TGAE* g, const TH1D* h, const double sf) {
+  if (h == nullptr) {
+    double x, y;
+    for (int i = 0; i < g->GetN (); i++) {
+      g->GetPoint (i, x, y);
+      g->SetPoint (i, x, y * sf);
+      g->SetPointEYlow (i, g->GetErrorYlow (i) * sf);
+      g->SetPointEYhigh (i, g->GetErrorYhigh (i) * sf);
+    }
+  }
+  else {
+    assert (g->GetN () == h->GetNbinsX ());
+    double x, y, yhist;
+    for (int i = 0; i < g->GetN (); i++) {
+      yhist = h->GetBinContent (i+1);
+      if (yhist == 0)
+        continue;
+      g->GetPoint (i, x, y);
+      g->SetPoint (i, x, y * sf / yhist);
+      g->SetPointEYlow (i, g->GetErrorYlow (i) * sf / yhist);
+      g->SetPointEYhigh (i, g->GetErrorYhigh (i) * sf / yhist);
+    }
+  }
+  return;
+}
+
+
+
 /**
  * Applies new binning to a histogram
  * BE CAREFUL: if bins edges don't overlap, this can lead to unexpected behavior!
  */ 
-void RebinSomeBins (TH1D** _h, int nbins, double* bins) {
+void RebinSomeBins (TH1D** _h, int nbins, double* bins, const bool doWidths) {
   TH1D* h = (*_h);
 
   if (nbins >= h->GetNbinsX ()) {
@@ -880,54 +1053,103 @@ void RebinSomeBins (TH1D** _h, int nbins, double* bins) {
   for (int ix = 0; ix < nbins; ix++) {
     for (int ixprime = 0; ixprime < noldbins; ixprime++) {
       if (bins[ix] <= oldbins[ixprime] && oldbins[ixprime+1] <= bins[ix+1]) {
-        hnew->SetBinContent (ix+1, hnew->GetBinContent (ix+1) + h->GetBinContent (ixprime+1));
-        hnew->SetBinError (ix+1, hnew->GetBinError (ix+1) + pow (h->GetBinError (ixprime+1), 2));
+        hnew->SetBinContent (ix+1, hnew->GetBinContent (ix+1) + h->GetBinContent (ixprime+1)*(doWidths ? 1 : h->GetBinWidth (ixprime+1)));
+        hnew->SetBinError (ix+1, hnew->GetBinError (ix+1) + std::pow (h->GetBinError (ixprime+1)*(doWidths ? 1 : h->GetBinWidth (ixprime+1)), 2));
       }
       else if (oldbins[ixprime] <= bins[ix] && bins[ix+1] <= oldbins[ixprime+1]) {
-        hnew->SetBinContent (ix+1, hnew->GetBinContent (ix+1) + h->GetBinContent (ixprime+1));
-        hnew->SetBinError (ix+1, hnew->GetBinError (ix+1) + pow (h->GetBinError (ixprime+1), 2));
+        hnew->SetBinContent (ix+1, hnew->GetBinContent (ix+1) + h->GetBinContent (ixprime+1)*(doWidths ? 1 : h->GetBinWidth (ixprime+1)));
+        hnew->SetBinError (ix+1, hnew->GetBinError (ix+1) + std::pow (h->GetBinError (ixprime+1)*(doWidths ? 1 : h->GetBinWidth (ixprime+1)), 2));
       }
     }
-    hnew->SetBinError (ix+1, sqrt (hnew->GetBinError (ix+1)));
+    hnew->SetBinError (ix+1, std::sqrt (hnew->GetBinError (ix+1)));
   }
   delete[] oldbins;
 
   delete h;
+
+  if (doWidths)
+    hnew->Scale (1, "width");
+
   *_h = hnew;
 }
+
 
 
 /**
  * Draws histogram as a graph with some plotting settings.
  */
-void myDraw (TH1D* h, const Color_t col, const Style_t mstyle, const float msize, const Style_t lstyle, const int lwidth) {
+void myDraw (TH1D* h, const Color_t col, const Style_t mstyle, const float msize, const Style_t lstyle, const int lwidth, const bool doMOutline) {
   TGAE* g = make_graph (h);
-  myDraw (g, col, mstyle, msize, lstyle, lwidth);
+  myDraw (g, col, mstyle, msize, lstyle, lwidth, "P", doMOutline);
   SaferDelete (&g);
   return;
 } 
 
 
+
+/**
+ * Draws histogram as a graph with some plotting settings.
+ */
+void myDrawHist (TH1D* h, const Color_t col, const Style_t lstyle, const int lwidth) {
+  TH1D* hdraw = (TH1D*) h->Clone ();
+  hdraw->SetLineColor (col);
+  hdraw->SetLineStyle (lstyle);
+  hdraw->SetLineWidth (lstyle);
+  hdraw->DrawCopy ("hist ][ same");
+  delete hdraw;
+  return;
+} 
+
+
+
 /**
  * Draws a graph with some plotting settings.
  */
-void myDraw (TGAE* g, const Color_t col, const Style_t mstyle, const float msize, const Style_t lstyle, const int lwidth) {
+void myDraw (TGAE* g, const Color_t col, const Style_t mstyle, const float msize, const Style_t lstyle, const int lwidth, const char* opt, const bool doMOutline) {
   g->SetLineColor (col);
   g->SetMarkerColor (col);
   g->SetMarkerStyle (mstyle);
   g->SetMarkerSize (msize);
   g->SetLineStyle (lstyle);
   g->SetLineWidth (lwidth);
-  ((TGAE*) g->Clone ())->Draw ("p");
+  ((TGAE*) g->Clone ())->Draw (opt);
 
-  if (IsFullMarker (mstyle) && col != kBlack) {
+  if (doMOutline && IsFullMarker (mstyle) && col != kBlack) {
     g->SetLineWidth (0);
     g->SetMarkerColor (kBlack);
     g->SetMarkerStyle (FullToOpenMarker (g->GetMarkerStyle ()));
-    ((TGAE*) g->Clone ())->Draw ("p");
+    ((TGAE*) g->Clone ())->Draw (opt);
   }
   return;
 } 
+
+
+
+/**
+ * Draws a filled area between gup and gdown with the given settings.
+ */
+void myDrawFill (TGAE* gup, TGAE* gdown, const Color_t col, const float falpha, const Style_t fstyle) {
+  assert (gup->GetN () == gdown->GetN ());
+  TGAE* g = new TGAE (2 * gup->GetN ());
+
+  double x, y;
+  for (int i = 0; i < gup->GetN (); i++) {
+    gup->GetPoint (i, x, y);
+    g->SetPoint (i, x, y);
+  }
+  for (int i = gdown->GetN ()-1; i >= 0; i--) {
+    gdown->GetPoint (i, x, y);
+    g->SetPoint (2 * gdown->GetN () - i - 1, x, y);
+  }
+
+  g->SetFillColorAlpha (col, falpha);
+  g->SetFillStyle (fstyle);
+  g->SetLineWidth (0);
+  ((TGAE*) g->Clone ())->Draw ("f");
+  delete g;
+  return;
+}
+
 
 
 /**
@@ -942,6 +1164,16 @@ void myDrawSyst (TGAE* g, const Color_t col, const Style_t lstyle, const int lwi
   ((TGAE*) g->Clone ())->Draw ("5");
   return;
 } 
+
+
+
+void myDrawSystFill (TGAE* g, const Color_t col, const float falpha, const Style_t fstyle) {
+  TGAE* gp = (TGAE*) g->Clone ();
+  gp->SetFillColorAlpha (col, falpha);
+  gp->Draw ("2");
+  return;
+}
+
 
 
 /**
@@ -960,7 +1192,7 @@ void AddNoErrors (TH1D* h, TH1D* a, const float sf) {
  */
 void MultiplyNoErrors (TH1D* h, TH1D* a, const float power) {
   for (int ix = 1; ix <= h->GetNbinsX (); ix++) {
-    h->SetBinContent (ix, h->GetBinContent (ix) * pow (a->GetBinContent (ix), power));
+    h->SetBinContent (ix, h->GetBinContent (ix) * std::pow (a->GetBinContent (ix), power));
   }
 }
 
@@ -1102,7 +1334,7 @@ void BinomialDivide (TH1* n, TH1* d) {
       var = var / d->GetBinContent (ix);
 
     n->SetBinContent (ix, eff);
-    n->SetBinError (ix, sqrt (fabs (var)));
+    n->SetBinError (ix, std::sqrt (std::fabs (var)));
   }
   return;
 }
@@ -1414,6 +1646,43 @@ TBox* TBoxNDC (const double x1, const double y1, const double x2, const double y
   p->cd ();
   TBox* b = new TBox (x1, y1, x2, y2);
   return b;
+}
+
+
+
+
+void mySimpleMarkerAndBoxAndLineText (double x, double y, const double bsize, const int bstyle, const int bcolor, const double balpha, const int mcolor, const int mstyle, const double msize, const char* text, const double tsize) {
+
+  const double y1 = y - (0.25*tsize) - (0.004*bsize) + 0.25*tsize;
+  const double y2 = y + (0.25*tsize) + (0.004*bsize) + 0.25*tsize;
+  const double x2 = x - (0.8*tsize) + 0.01;
+  const double x1 = x - (0.8*tsize) + 0.01 - (0.04*bsize);
+
+  TPave *mbox= new TPave (x1, y1, x2, y2, 0, "NDC");
+  mbox->SetFillColorAlpha (bcolor, balpha);
+  mbox->SetFillStyle (bstyle);
+  mbox->Draw ();
+
+  TLine *markerLine = new TLine ();
+  markerLine->SetNDC ();
+  markerLine->SetLineColor (mcolor);
+  markerLine->SetLineStyle (1);
+  markerLine->SetLineWidth (3);
+  markerLine->DrawLineNDC (x1, 0.5*(y1+y2), x2, 0.5*(y1+y2));
+
+  TMarker *marker = new TMarker(x2-0.02*bsize, y+0.25*tsize, 8);
+  marker->SetNDC();
+  marker->SetMarkerColor (mcolor);
+  marker->SetMarkerStyle (mstyle);
+  marker->SetMarkerSize (msize);
+  marker->Draw ();
+
+ 
+  TLatex l;
+  l.SetTextAlign (11);
+  l.SetTextSize (tsize);
+  l.SetNDC ();
+  l.DrawLatex (x, y, text);
 }
 
 

@@ -48,7 +48,7 @@ void SetVariances (TH1D* h, TH2D* h2);
 /**
  * Divides two histograms assuming the entries in one are binomial samples of the other.
  */
-void BinomialDivide (TH1* out, TH1* num, TH1* den, TH1* den_unwgt);
+void BinomialDivide (TH1* out, TH1* num, TH1* den, TH1* h_sumwgt2 = nullptr);
 
 
 /**
@@ -145,7 +145,26 @@ void AddErrorsInQuadrature (TH1D* master, TH1D* sys);
 /**
  * Adds independent systematic errors in quadrature, storing the sum in master
  */
-void AddErrorsInQuadrature (TGAE* master, TGAE* sys, const bool doXErrs = false);
+void AddErrorsInQuadrature (TGAE* master, TH1D* sys);
+
+
+/**
+ * Adds independent systematic errors in quadrature, storing the sum in master
+ */
+void AddErrorsInQuadrature (TGAE* master, TGAE* sys, const bool doXErrs = false, const bool symmetrize = false);
+
+
+/**
+ * Adds independent systematic errors in quadrature, storing the sum in master
+ * Allows user to send an array of systematics, not necessarily in order, and only adds the maximum uncertainty from these.
+ */
+void AddErrorsInQuadrature (TGAE* master, TGAE** sys, const std::vector <int>* indices, const bool symmetrize = false);
+
+
+/**
+ * Adds independent relative systematic errors in quadrature, storing the sum in master
+ */
+void AddRelErrorsInQuadrature (TGAE* master, TGAE* sys, const bool ignoreWarning = false, const bool symmetrize = false);
 
 
 /**
@@ -182,6 +201,12 @@ void CalcSystematics (TGAE* graph, TGAE* optimal, const TGraph* sys_hi, const TG
 
 
 /**
+ * Sets the bin contents in target as the errors in errors / central values in centralValues
+ */
+void SaveRelativeErrors (TGAE* target, TGAE* errors, TGAE* centralValues, const float sf = 1);
+
+
+/**
  * Sets the bin contents in target as the error / central values in centralValues
  */
 void SaveRelativeErrors (TH1D* errors, TH1D* centralValues, bool useCentVals=false);
@@ -197,6 +222,12 @@ void SaveAbsoluteErrors (TGAE* errors, TGAE* centralValues, TH1D* highs, TH1D* l
  * Sets the bin contents in highs and lows as the respective errors / central values in centralValues
  */
 void SaveRelativeErrors (TGAE* errors, TGAE* centralValues, TH1D* highs, TH1D* lows);
+
+
+/**
+ * Returns a TGAE with central values equal to the uncertainties in g.
+ */
+TGAE* ConvertErrorsToCentralValues (TGAE* g, const bool doHighErrs = true, const float sf = 1);
 
 
 /**
@@ -249,32 +280,52 @@ void RecenterGraph (TGAE* g);
 
 
 /**
- * New binning
- */ 
+ * Scales a TGAE and its errors by the central values in a TH1D.
+ */
+void ScaleGraph (TGAE* g, const TH1D* h = nullptr, const double sf = 1.);
+
 
 /**
  * Applies new binning to a histogram
  * BE CAREFUL: if bins edges don't overlap, this can lead to unexpected behavior!
  */
-void RebinSomeBins (TH1D** _h, int nbins, double* bins);
+void RebinSomeBins (TH1D** _h, int nbins, double* bins, const bool doWidths = false);
 
 
 /**
  * Draws histogram as a graph with some plotting settings.
  */
-void myDraw (TH1D* h, const Color_t col, const Style_t mstyle, const float msize, const Style_t lstyle = 1, const int lwidth = 2);
+void myDraw (TH1D* h, const Color_t col, const Style_t mstyle, const float msize, const Style_t lstyle = 1, const int lwidth = 2, const bool doMOutline = true);
+
+
+/**
+ * Draws histogram as a graph with some plotting settings.
+ */
+void myDrawHist (TH1D* h, const Color_t col, const Style_t lstyle = 1, const int lwidth = 2);
 
 
 /**
  * Draws a graph with some plotting settings.
  */
-void myDraw (TGAE* g, const Color_t col, const Style_t mstyle, const float msize, const Style_t lstyle = 1, const int lwidth = 2);
+void myDraw (TGAE* g, const Color_t col, const Style_t mstyle, const float msize, const Style_t lstyle = 1, const int lwidth = 2, const char* opt = "P", const bool doMOutline = true);
+
+
+/**
+ * Draws a filled area between gup and gdown with the given settings.
+ */
+void myDrawFill (TGAE* gup, TGAE* gdown, const Color_t col, const float falpha, const Style_t fstyle = 1001);
 
 
 /**
  * Draws a graph as a systematic with some plotting settings.
  */
 void myDrawSyst (TGAE* g, const Color_t col, const Style_t lstyle = 1, const int lwidth = 1);
+
+
+/**
+ * Draws a graph as a systematic with filled box errors.
+ */
+void myDrawSystFill (TGAE* g, const Color_t col, const float falpha, const Style_t fstyle);
 
 
 /**
@@ -326,6 +377,8 @@ void myMarkerTextNoLine (double x, double y, int color, int mstyle, const char *
 void myOnlyBoxText (double x, double y, double boxsize, int mcolor, int lcolor, int lstyle, const char *text, double tsize, int bstyle, double balpha);
 
 TBox* TBoxNDC (const double x1, const double y1, const double x2, const double y2);
+
+void mySimpleMarkerAndBoxAndLineText (double x, double y, const double bsize, const int bstyle, const int bcolor, const double balpha, const int mcolor, const int mstyle, const double msize, const char* text, const double tsize=0.032);
 
 void myMarkerAndBoxAndLineText (double x, double y, const double bsize, const int bstyle, const int bcolor, const double balpha, const int mcolor, const int mstyle, const double msize, const char* text, const double tsize=0.032);
 
