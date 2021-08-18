@@ -311,6 +311,12 @@ void myDraw (TGAE* g, const Color_t col, const Style_t mstyle, const float msize
 
 
 /**
+ * Draws a function with some plotting settings.
+ */
+void myDraw (TF1* f, const Color_t col, const Style_t lstyle = 1, const int lwidth = 2, const char* opt = "same");
+
+
+/**
  * Draws a filled area between gup and gdown with the given settings.
  */
 void myDrawFill (TGAE* gup, TGAE* gdown, const Color_t col, const float falpha, const Style_t fstyle = 1001);
@@ -319,7 +325,7 @@ void myDrawFill (TGAE* gup, TGAE* gdown, const Color_t col, const float falpha, 
 /**
  * Draws a graph as a systematic with some plotting settings.
  */
-void myDrawSyst (TGAE* g, const Color_t col, const Style_t lstyle = 1, const int lwidth = 1);
+void myDrawSyst (TGAE* g, const Color_t col, const Style_t lstyle = 1, const int lwidth = 1, const float falpha = 0., const char* opt = "5");
 
 
 /**
