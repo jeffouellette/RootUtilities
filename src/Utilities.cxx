@@ -1053,12 +1053,12 @@ void RebinSomeBins (TH1D** _h, int nbins, double* bins, const bool doWidths) {
   for (int ix = 0; ix < nbins; ix++) {
     for (int ixprime = 0; ixprime < noldbins; ixprime++) {
       if (bins[ix] <= oldbins[ixprime] && oldbins[ixprime+1] <= bins[ix+1]) {
-        hnew->SetBinContent (ix+1, hnew->GetBinContent (ix+1) + h->GetBinContent (ixprime+1)*(doWidths ? 1 : h->GetBinWidth (ixprime+1)));
-        hnew->SetBinError (ix+1, hnew->GetBinError (ix+1) + std::pow (h->GetBinError (ixprime+1)*(doWidths ? 1 : h->GetBinWidth (ixprime+1)), 2));
+        hnew->SetBinContent (ix+1, hnew->GetBinContent (ix+1) + h->GetBinContent (ixprime+1)*(doWidths ? h->GetBinWidth (ixprime+1) : 1));
+        hnew->SetBinError (ix+1, hnew->GetBinError (ix+1) + std::pow (h->GetBinError (ixprime+1)*(doWidths ? h->GetBinWidth (ixprime+1) : 1), 2));
       }
       else if (oldbins[ixprime] <= bins[ix] && bins[ix+1] <= oldbins[ixprime+1]) {
-        hnew->SetBinContent (ix+1, hnew->GetBinContent (ix+1) + h->GetBinContent (ixprime+1)*(doWidths ? 1 : h->GetBinWidth (ixprime+1)));
-        hnew->SetBinError (ix+1, hnew->GetBinError (ix+1) + std::pow (h->GetBinError (ixprime+1)*(doWidths ? 1 : h->GetBinWidth (ixprime+1)), 2));
+        hnew->SetBinContent (ix+1, hnew->GetBinContent (ix+1) + h->GetBinContent (ixprime+1)*(doWidths ? h->GetBinWidth (ixprime+1) : 1));
+        hnew->SetBinError (ix+1, hnew->GetBinError (ix+1) + std::pow (h->GetBinError (ixprime+1)*(doWidths ? h->GetBinWidth (ixprime+1) : 1), 2));
       }
     }
     hnew->SetBinError (ix+1, std::sqrt (hnew->GetBinError (ix+1)));
