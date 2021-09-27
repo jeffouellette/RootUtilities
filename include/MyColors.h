@@ -29,8 +29,8 @@ const int nSystColors = sizeof (systColors) / sizeof (systColors[0]);
 const Color_t manyColors[] = {kRed+1, kPink-3, kPink+9, kPink+6, kMagenta-3, kViolet-3, kViolet+7, kBlue+1, kAzure-2, kAzure+7, kAzure+6, kCyan-7, kTeal, kTeal-5, kGreen-3, kSpring+7, kSpring+5, kOrange-5, kOrange-2, kOrange-3, kOrange+6, kOrange+10};
 const int nManyColors = sizeof (manyColors) / sizeof (manyColors[0]);
 
-const Color_t lauraSystColors[] = {(Color_t) TColor::GetColor (102, 102, 204), (Color_t) TColor::GetColor (255, 102, 255), (Color_t) TColor::GetColor (255, 102, 102), (Color_t) TColor::GetColor (255, 204, 0), (Color_t) TColor::GetColor (204, 204, 51), (Color_t) TColor::GetColor (51, 204, 51), (Color_t) TColor::GetColor (102, 255, 255), (Color_t) TColor::GetColor (255, 0, 102)};
-const Color_t lauraColors[] = {(Color_t) TColor::GetColor (0, 0, 153), (Color_t) TColor::GetColor (204, 0, 204), (Color_t) TColor::GetColor (204, 0, 0), (Color_t) TColor::GetColor (255, 102, 0), (Color_t) TColor::GetColor (153, 153, 0), (Color_t) TColor::GetColor (0, 153, 0), (Color_t) TColor::GetColor (1, 204, 204), (Color_t) TColor::GetColor (255, 102, 153)};
+const Color_t colorfulSystColors[] = {(Color_t) TColor::GetColor (102, 102, 204), (Color_t) TColor::GetColor (255, 102, 255), (Color_t) TColor::GetColor (255, 102, 102), (Color_t) TColor::GetColor (255, 204, 0), (Color_t) TColor::GetColor (204, 204, 51), (Color_t) TColor::GetColor (51, 204, 51), (Color_t) TColor::GetColor (102, 255, 255), (Color_t) TColor::GetColor (255, 0, 102)};
+const Color_t colorfulColors[] = {(Color_t) TColor::GetColor (0, 0, 153), (Color_t) TColor::GetColor (204, 0, 204), (Color_t) TColor::GetColor (204, 0, 0), (Color_t) TColor::GetColor (255, 102, 0), (Color_t) TColor::GetColor (153, 153, 0), (Color_t) TColor::GetColor (0, 153, 0), (Color_t) TColor::GetColor (1, 204, 204), (Color_t) TColor::GetColor (255, 102, 153)};
 
 
 #endif

@@ -113,6 +113,12 @@ void ResetXErrors (TGAE* tg);
 
 
 /**
+ * Cuts off extra points in a TGAE beyond a specified range.
+ */
+void TrimGraph (TGAE* g, const double xmin = DBL_MIN, const double xmax = DBL_MAX);
+
+
+/**
  * Calculates errors in a TH1D from a TH2D storing the quadrature sum of each entry.
  */
 void CalcUncertainties (TH1D* h, TH2D* h2, const double nEvts);

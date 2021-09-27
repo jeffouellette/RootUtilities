@@ -314,6 +314,22 @@ void ResetXErrors (TGAE* tg) {
 
 
 /**
+ * Cuts off extra points in a TGAE beyond a specified range.
+ */
+void TrimGraph (TGAE* g, const double xmin, const double xmax) {
+  double x, y;
+  for (int i = 0; i< g->GetN (); i++) {
+    g->GetPoint (i, x, y);
+    if (x < xmin || x > xmax) {
+      g->RemovePoint (i);
+      i--;
+    }
+  }
+  return;
+}
+
+
+/**
  * Calculates errors in a TH1D from a TH2D storing the quadrature sum of each entry.
  */
 void CalcUncertainties (TH1D* h, TH2D* h2, const double n) {
@@ -357,8 +373,8 @@ void CalcUncertainties (TH1D* h, TH2D* h2, TH1D* hn) {
   for (int iX = 1; iX <= h2->GetNbinsX (); iX++)
     for (int iY = 1; iY <= h2->GetNbinsY (); iY++)
       h2->SetBinContent (iX, iY, h2->GetBinContent (iX, iY) - n1 * (h->GetBinContent (iX)) * (h->GetBinContent (iY)));
-  h->Scale (1., "width");
-  h2->Scale (std::pow (n0*(n1*n1-n2)/n1, -1), "width");
+  //h->Scale (1., "width");
+  h2->Scale (std::pow (n0*(n1*n1-n2)/n1, -1));//, "width");
   SetVariances (h, h2);
   return;
 }
