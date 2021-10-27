@@ -367,14 +367,17 @@ void CalcUncertainties (TH1D* h, TH2D* h2, TH1D* hn) {
     std::cout << "Warning: n0 <= 1 for histograms " << h->GetName () << " and " << h2->GetName () << std::endl;
   if (n0 == 0)
     return; // if no counts just return
-  assert (n0 > 1); // check number of entries is at least 1 (otherwise the sample variance is undefined!)
+  assert (n0 >= 1); // check number of entries is greater than 1; if equal to 1 then define all uncertainties to be 100%
 
   h->Scale (1./n1);
   for (int iX = 1; iX <= h2->GetNbinsX (); iX++)
     for (int iY = 1; iY <= h2->GetNbinsY (); iY++)
-      h2->SetBinContent (iX, iY, h2->GetBinContent (iX, iY) - n1 * (h->GetBinContent (iX)) * (h->GetBinContent (iY)));
+      h2->SetBinContent (iX, iY, (n0 == 1 ? h->GetBinContent (iX) * h->GetBinContent (iY) : h2->GetBinContent (iX, iY) - n1 * (h->GetBinContent (iX)) * (h->GetBinContent (iY))));
   //h->Scale (1., "width");
-  h2->Scale (std::pow (n0*(n1*n1-n2)/n1, -1));//, "width");
+  if (n0 > 1)
+    h2->Scale (std::pow (n0*(n1*n1-n2)/n1, -1));//, "width");
+  else
+    h2->Scale (std::pow (n1, -1));
   SetVariances (h, h2);
   return;
 }
@@ -1087,6 +1090,19 @@ void RebinSomeBins (TH1D** _h, int nbins, double* bins, const bool doWidths) {
     hnew->Scale (1, "width");
 
   *_h = hnew;
+}
+
+
+
+/**
+ * Un-scales a histogram by the bin width and also applies an optional constant scaling factor (such as a number of events or a luminosity).
+ */
+void UnscaleWidth (TH1D* h, const float sf) {
+  for (short iX = 1; iX <= h->GetNbinsX (); iX++) {
+    h->SetBinContent (iX, h->GetBinContent (iX) * h->GetXaxis ()->GetBinWidth (iX) * sf);
+    h->SetBinError   (iX, h->GetBinError   (iX) * h->GetXaxis ()->GetBinWidth (iX) * sf);
+  }
+  return;
 }
 
 
