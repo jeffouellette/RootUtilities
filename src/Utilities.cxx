@@ -1213,10 +1213,28 @@ void myDrawSyst (TGAE* g, const Color_t col, const Style_t lstyle, const int lwi
 
 
 
+/**
+ * Draws a graph as a systematic with filled box errors.
+ */
 void myDrawSystFill (TGAE* g, const Color_t col, const float falpha, const Style_t fstyle) {
   TGAE* gp = (TGAE*) g->Clone ();
   gp->SetFillColorAlpha (col, falpha);
   gp->Draw ("2");
+  return;
+}
+
+
+
+/**
+ * Takes a TGAE and fills two other TGAEs offset by one up error and one down error.
+ */
+void MakeGupAndGdown (TGAE* g, TGAE* gu, TGAE* gd) {
+  double x, y;
+  for (int i = 0; i < g->GetN (); i++) {
+    g->GetPoint (i, x, y);
+    gu->SetPoint (gu->GetN (), x, y + g->GetErrorYhigh (i));
+    gd->SetPoint (gd->GetN (), x, y - g->GetErrorYlow (i));
+  }
   return;
 }
 

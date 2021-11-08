@@ -347,6 +347,12 @@ void myDrawSystFill (TGAE* g, const Color_t col, const float falpha, const Style
 
 
 /**
+ * Takes a TGAE and fills two other TGAEs offset by one up error and one down error.
+ */
+void MakeGupAndGdown (TGAE* g, TGAE* gu, TGAE* gd);
+
+
+/**
  * Adds a to h without propagating errors (e.g. for subtracting a background)
  */
 void AddNoErrors (TH1D* h, TH1D* a, const float sf = 1.);
