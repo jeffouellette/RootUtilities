@@ -319,7 +319,7 @@ void myDrawHist (TH1D* h, const Color_t col, const Style_t lstyle = 1, const int
 /**
  * Draws a graph with some plotting settings.
  */
-void myDraw (TGAE* g, const Color_t col, const Style_t mstyle, const float msize, const Style_t lstyle = 1, const int lwidth = 2, const char* opt = "P", const bool doMOutline = true);
+void myDraw (TGraph* g, const Color_t col, const Style_t mstyle, const float msize, const Style_t lstyle = 1, const int lwidth = 2, const char* opt = "P", const bool doMOutline = true);
 
 
 /**

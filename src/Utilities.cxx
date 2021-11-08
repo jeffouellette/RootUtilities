@@ -1137,7 +1137,7 @@ void myDrawHist (TH1D* h, const Color_t col, const Style_t lstyle, const int lwi
 /**
  * Draws a graph with some plotting settings.
  */
-void myDraw (TGAE* g, const Color_t col, const Style_t mstyle, const float msize, const Style_t lstyle, const int lwidth, const char* opt, const bool doMOutline) {
+void myDraw (TGraph* g, const Color_t col, const Style_t mstyle, const float msize, const Style_t lstyle, const int lwidth, const char* opt, const bool doMOutline) {
   g->SetLineColor (col);
   g->SetMarkerColor (col);
   g->SetMarkerStyle (mstyle);
@@ -1202,8 +1202,8 @@ void myDrawFill (TGAE* gup, TGAE* gdown, const Color_t col, const float falpha, 
  */
 void myDrawSyst (TGAE* g, const Color_t col, const Style_t lstyle, const int lwidth, const float falpha, const char* opt) {
   g->SetLineColor (col);
-  g->SetMarkerStyle (0);
-  g->SetMarkerSize (0);
+//  g->SetMarkerStyle (0);
+//  g->SetMarkerSize (0);
   g->SetLineStyle (lstyle);
   g->SetLineWidth (lwidth);
   g->SetFillColorAlpha (col, falpha);
