@@ -331,7 +331,7 @@ void myDraw (TF1* f, const Color_t col, const Style_t lstyle = 1, const int lwid
 /**
  * Draws a filled area between gup and gdown with the given settings.
  */
-void myDrawFill (TGAE* gup, TGAE* gdown, const Color_t col, const float falpha, const Style_t fstyle = 1001);
+void myDrawFill (TGraph* gup, TGraph* gdown, const Color_t col, const float falpha, const Style_t fstyle = 1001);
 
 
 /**
