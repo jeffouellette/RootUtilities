@@ -314,9 +314,9 @@ void ResetXErrors (TGAE* tg) {
 
 
 /**
- * Cuts off extra points in a TGAE beyond a specified range.
+ * Cuts off extra points in a TGraph beyond a specified range.
  */
-void TrimGraph (TGAE* g, const double xmin, const double xmax) {
+void TrimGraph (TGraph* g, const double xmin, const double xmax) {
   double x, y;
   for (int i = 0; i< g->GetN (); i++) {
     g->GetPoint (i, x, y);
@@ -344,8 +344,8 @@ void CalcUncertainties (TH1D* h, TH2D* h2, const double n) {
   for (int iX = 1; iX <= h2->GetNbinsX (); iX++)
     for (int iY = 1; iY <= h2->GetNbinsY (); iY++)
       h2->SetBinContent (iX, iY, h2->GetBinContent (iX, iY) - n * (h->GetBinContent (iX)) * (h->GetBinContent (iY)));
-  h->Scale (1., "width");
-  h2->Scale (std::pow (n*(n-1.), -1), "width");
+  h->Scale (1.);
+  h2->Scale (std::pow (n*(n-1.), -1));
   SetVariances (h, h2);
   return;
 }
@@ -675,6 +675,48 @@ void CalcSystematics (TGAE* graph, TGAE* optimal, const TGraph* sys_hi, const TG
 
 
 /**
+ * Extension of CalcSystematics (TGAE* sys, TH1D* nom, TH1D* var) for smoothing uncertainties.
+ */
+void SmoothSystematics (TGAE* sys, TH1D* nom, TH1D* var, const TString funcform) {
+  TGraphErrors* tg = new TGraphErrors ();
+  double x, y;
+  double xlo = DBL_MAX, xhi = DBL_MIN;
+  for (int i = 0; i < sys->GetN (); i++) {
+    sys->GetPoint (i, x, y);
+    xlo = std::fmin (x, xlo);
+    xhi = std::fmax (x, xhi);
+    if (y != 0) {
+      tg->SetPoint (i, x, (sys->GetErrorYhigh (i) - sys->GetErrorYlow (i)) / y);
+      double yv = var->GetBinContent (i+1);
+      double yve = var->GetBinError (i+1);
+      double yn = nom->GetBinContent (i+1);
+      double yne = nom->GetBinError (i+1);
+      tg->SetPointError (i, 0.5*nom->GetBinWidth (i+1), std::sqrt (std::pow (yv*yne/(yn*yn), 2) + std::pow (yve/yn, 2)));
+    }
+  }
+
+  TF1* func = new TF1 ("functemp", funcform.Data (), xlo, xhi);
+  tg->Fit (func, "RN0Q");
+
+  for (int i = 0; i < sys->GetN (); i++) {
+    sys->GetPoint (i, x, y);
+    double newErr = func->Eval (x) * y;
+    if (newErr > 0) {
+      sys->SetPointEYhigh (i, std::fabs (newErr));
+      sys->SetPointEYlow (i, 0);
+    }
+    else {
+      sys->SetPointEYlow (i, std::fabs (newErr));
+      sys->SetPointEYhigh (i, 0);
+    }
+  } 
+  SaferDelete (&func);
+  SaferDelete (&tg);
+  return;
+}
+
+
+/**
  * Sets the bin contents in target as the errors in errors / central values in centralValues
  */
 void SaveRelativeErrors (TGAE* target, TGAE* errors, TGAE* centralValues, const float sf) {
@@ -932,6 +974,31 @@ void SetConstantXErrors (TGAE* tg, const double err, const bool mult, const doub
     tg->SetPointEXlow (n, exl);
   }
   return;
+}
+
+
+
+/**
+ * Makes a TGraphError from the input histogram.
+ */
+TGE* TH1ToTGE (TH1* h, const float cutoff) {
+  TGE* tg = new TGE ();
+
+  const float xlo = h->GetBinLowEdge (1);
+  const float xhi = h->GetBinLowEdge (h->GetNbinsX ()) + h->GetBinWidth (h->GetNbinsX ());
+
+  for (int n = 0; n < h->GetNbinsX (); n++) {
+    if (cutoff >= 0 && h->GetBinContent (n+1) <= cutoff) {
+      continue;
+    }
+    else {
+      tg->SetPoint (tg->GetN (), h->GetBinCenter (n+1), h->GetBinContent (n+1));
+      tg->SetPointError (tg->GetN ()-1, h->GetBinWidth (n+1) / 2, h->GetBinError (n+1));
+    }
+  }
+
+  tg->GetXaxis ()->SetRangeUser (xlo, xhi);
+  return tg;
 }
 
 

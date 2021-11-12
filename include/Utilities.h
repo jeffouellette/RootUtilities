@@ -7,6 +7,7 @@
 #include <TH1.h>
 #include <TH2.h>
 #include <TH3.h>
+#include <TGraphErrors.h>
 #include <TGraphAsymmErrors.h>
 #include <TEfficiency.h>
 #include <TCanvas.h>
@@ -15,6 +16,7 @@
 
 using namespace std;
 
+typedef TGraphErrors TGE;
 typedef TGraphAsymmErrors TGAE;
 
 /**
@@ -113,9 +115,9 @@ void ResetXErrors (TGAE* tg);
 
 
 /**
- * Cuts off extra points in a TGAE beyond a specified range.
+ * Cuts off extra points in a TGraph beyond a specified range.
  */
-void TrimGraph (TGAE* g, const double xmin = DBL_MIN, const double xmax = DBL_MAX);
+void TrimGraph (TGraph* g, const double xmin = DBL_MIN, const double xmax = DBL_MAX);
 
 
 /**
@@ -207,6 +209,13 @@ void CalcSystematics (TGAE* graph, TGAE* optimal, const TGraph* sys_hi, const TG
 
 
 /**
+ * Extension of CalcSystematics (TGAE* sys, TH1D* nom, TH1D* var) for smoothing uncertainties.
+ */
+//void SmoothSystematics (TGAE* sys, const TString funcform = "[0]+[1]*log(x)+[2]*pow(log(x),2)");
+void SmoothSystematics (TGAE* sys, TH1D* nom, TH1D* var, const TString funcform);
+
+
+/**
  * Sets the bin contents in target as the errors in errors / central values in centralValues
  */
 void SaveRelativeErrors (TGAE* target, TGAE* errors, TGAE* centralValues, const float sf = 1);
@@ -259,6 +268,12 @@ void OffsetYAxis (TGAE* g, const double delta, const bool logx);
  * If mult is true, then will be multiplicative (intended for a log scale).
  */
 void SetConstantXErrors (TGAE* tg, const double err, const bool mult, const double x1 = 0, const double x2 = 0);
+
+
+/**
+ * Makes a TGraphError from the input histogram.
+ */
+TGE* TH1ToTGE (TH1* h, const float cutoff = -1);
 
 
 /**
