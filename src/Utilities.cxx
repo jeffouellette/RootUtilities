@@ -16,6 +16,7 @@
 #include <TH1D.h>
 #include <TStyle.h>
 #include <TPad.h>
+#include <TGraphSmooth.h>
 
 #include <math.h>
 
@@ -717,6 +718,48 @@ void SmoothSystematics (TGAE* sys, TH1D* nom, TH1D* var, const TString funcform)
 
 
 /**
+ * Extension of CalcSystematics (TGAE* sys, TH1D* nom, TH1D* var) for smoothing uncertainties.
+ * Uses LOWESS regression from TGraphSmooth.
+ */
+void SmoothSystematics (TGAE* sys) { //, TH1D* nom, TH1D* var) {
+  TGraph* tg = new TGraph ();
+  double x, y;
+  double xlo = DBL_MAX, xhi = DBL_MIN;
+  for (int i = 0; i < sys->GetN (); i++) {
+    sys->GetPoint (i, x, y);
+    xlo = std::fmin (x, xlo);
+    xhi = std::fmax (x, xhi);
+    if (y != 0) {
+      tg->SetPoint (i, std::log (x), (sys->GetErrorYhigh (i) - sys->GetErrorYlow (i)) / y);
+      //double yv = var->GetBinContent (i+1);
+      //double yve = var->GetBinError (i+1);
+      //double yn = nom->GetBinContent (i+1);
+      //double yne = nom->GetBinError (i+1);
+      //tg->SetPointError (i, 0.5*nom->GetBinWidth (i+1), std::sqrt (std::pow (yv*yne/(yn*yn), 2) + std::pow (yve/yn, 2)));
+    }
+  }
+  TGraphSmooth* gsmooth = new TGraphSmooth ("normal");
+  TGraph* gs = gsmooth->SmoothLowess (tg);
+
+  for (int i = 0; i < sys->GetN (); i++) {
+    sys->GetPoint (i, x, y);
+    double newErr = gs->Eval (std::log (x)) * y;
+    if (newErr > 0) {
+      sys->SetPointEYhigh (i, std::fabs (newErr));
+      sys->SetPointEYlow (i, 0);
+    }
+    else {
+      sys->SetPointEYlow (i, std::fabs (newErr));
+      sys->SetPointEYhigh (i, 0);
+    }
+  } 
+  SaferDelete (&gsmooth);
+  SaferDelete (&tg);
+  return;
+}
+
+
+/**
  * Sets the bin contents in target as the errors in errors / central values in centralValues
  */
 void SaveRelativeErrors (TGAE* target, TGAE* errors, TGAE* centralValues, const float sf) {
@@ -1175,11 +1218,24 @@ void UnscaleWidth (TH1D* h, const float sf) {
 
 
 /**
+ * Scales a histogram by the bin width and also applies an optional constant scaling factor (such as a number of events or a luminosity).
+ */
+void ScaleWidth (TH1D* h, const float sf) {
+  for (short iX = 1; iX <= h->GetNbinsX (); iX++) {
+    h->SetBinContent (iX, h->GetBinContent (iX) / (h->GetXaxis ()->GetBinWidth (iX) * sf));
+    h->SetBinError   (iX, h->GetBinError   (iX) / (h->GetXaxis ()->GetBinWidth (iX) * sf));
+  }
+  return;
+}
+
+
+
+/**
  * Draws histogram as a graph with some plotting settings.
  */
-void myDraw (TH1D* h, const Color_t col, const Style_t mstyle, const float msize, const Style_t lstyle, const int lwidth, const bool doMOutline) {
+void myDraw (TH1D* h, const Color_t col, const Style_t mstyle, const float msize, const Style_t lstyle, const int lwidth, const bool doMOutline, const char* opt) {
   TGAE* g = make_graph (h);
-  myDraw (g, col, mstyle, msize, lstyle, lwidth, "P", doMOutline);
+  myDraw (g, col, mstyle, msize, lstyle, lwidth, opt, doMOutline);
   SaferDelete (&g);
   return;
 } 

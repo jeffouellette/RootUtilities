@@ -216,6 +216,13 @@ void SmoothSystematics (TGAE* sys, TH1D* nom, TH1D* var, const TString funcform)
 
 
 /**
+ * Extension of CalcSystematics (TGAE* sys, TH1D* nom, TH1D* var) for smoothing uncertainties.
+ * Uses LOWESS regression from TGraphSmooth.
+ */
+void SmoothSystematics (TGAE* sys);
+
+
+/**
  * Sets the bin contents in target as the errors in errors / central values in centralValues
  */
 void SaveRelativeErrors (TGAE* target, TGAE* errors, TGAE* centralValues, const float sf = 1);
@@ -320,9 +327,15 @@ void UnscaleWidth (TH1D* h, const float sf = 1.);
 
 
 /**
+ * Scales a histogram by the bin width and also applies an optional constant scaling factor (such as a number of events or a luminosity).
+ */
+void ScaleWidth (TH1D* h, const float sf = 1.);
+
+
+/**
  * Draws histogram as a graph with some plotting settings.
  */
-void myDraw (TH1D* h, const Color_t col, const Style_t mstyle, const float msize, const Style_t lstyle = 1, const int lwidth = 2, const bool doMOutline = true);
+void myDraw (TH1D* h, const Color_t col, const Style_t mstyle, const float msize, const Style_t lstyle = 1, const int lwidth = 2, const bool doMOutline = true, const char* opt = "P");
 
 
 /**
