@@ -321,6 +321,14 @@ void RebinSomeBins (TH1D** _h, int nbins, double* bins, const bool doWidths = fa
 
 
 /**
+ * Applies new binning to a 2D histogram
+ * Assumes histogram has same bins along X & Y.
+ * BE CAREFUL: if bins edges don't overlap, this can lead to unexpected behavior!
+ */ 
+void RebinSomeBins2D (TH2D** _h, int nbins, double* bins, const bool doWidths = false);
+
+
+/**
  * Un-scales a histogram by the bin width and also applies an optional constant scaling factor (such as a number of events or a luminosity).
  */
 void UnscaleWidth (TH1D* h, const float sf = 1.);
@@ -430,7 +438,7 @@ void myOnlyBoxText (double x, double y, double boxsize, int mcolor, int lcolor, 
 
 TBox* TBoxNDC (const double x1, const double y1, const double x2, const double y2);
 
-void mySimpleMarkerAndBoxAndLineText (double x, double y, const double bsize, const int bstyle, const int bcolor, const double balpha, const int mcolor, const int mstyle, const double msize, const char* text, const double tsize=0.032);
+void mySimpleMarkerAndBoxAndLineText (double x, double y, const double bsize, const int bstyle, const int bcolor, const double balpha, const int mcolor, const int mstyle, const double msize, const char* text, const double tsize=0.032, const int lstyle=1);
 
 void myMarkerAndBoxAndLineText (double x, double y, const double bsize, const int bstyle, const int bcolor, const double balpha, const int mcolor, const int mstyle, const double msize, const char* text, const double tsize=0.032);
 

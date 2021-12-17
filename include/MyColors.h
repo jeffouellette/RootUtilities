@@ -20,7 +20,9 @@ const Color_t myLiteBlue = (Color_t) TColor::GetColor (0, 153, 255);
 const Color_t myViolet = (Color_t) TColor::GetColor (102, 0, 153);
 const Color_t myMaroon = (Color_t) TColor::GetColor (204, 51, 51);
 
-const Color_t colors[] = {myBlue, myGreen, myOrange, myRed, myPurple};
+//const Color_t colors[] = {myBlue, myGreen, myOrange, myRed, myPurple};
+const Color_t colors[] = {myBlue, myGreen, (Color_t) TColor::GetColor (255, 140, 0), myRed, myPurple};
+//const Color_t colors[] = {myMaroon, myPurple, myBlue, myCyan, myGreen};
 const int nColors = sizeof (colors) / sizeof (colors[0]);
 const Color_t pastels[] = {myLiteRed, myLitePurple, myCyan, myLiteGreen, myPeaGreen, myLiteYellow};
 const int nPastels = sizeof (pastels) / sizeof (pastels[0]);

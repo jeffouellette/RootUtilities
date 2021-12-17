@@ -197,10 +197,17 @@ void BinomialDivide (TH1* out, TH1* num, TH1* den, TH1* h_sumwgt2) {
 
       const double passes = num->GetBinContent (iX, iY);
       const double trials = den->GetBinContent (iX, iY);
-      const double sumwgt2 = h_sumwgt2->GetBinContent (iX, iY);
-      const double rate = passes/trials;
-      out->SetBinContent (iX, iY, rate);
-      out->SetBinError (iX, iY, std::sqrt ((rate*(1.-rate))*sumwgt2/std::pow(trials,2))); // normal approximation to uncertainty on efficiency
+
+      if (trials > 0) {
+        const double sumwgt2 = h_sumwgt2->GetBinContent (iX, iY);
+        const double rate = passes/trials;
+        out->SetBinContent (iX, iY, rate);
+        out->SetBinError (iX, iY, std::sqrt ((rate*(1.-rate))*sumwgt2/std::pow(trials,2))); // normal approximation to uncertainty on efficiency
+      }
+      else {
+        out->SetBinContent (iX, iY, -1); // set to -1 so it's not plotted
+        out->SetBinError (iX, iY, 1);    // set to 1 since we don't know what it is
+      }
     }
   }
   return;
@@ -1205,6 +1212,60 @@ void RebinSomeBins (TH1D** _h, int nbins, double* bins, const bool doWidths) {
 
 
 /**
+ * Applies new binning to a 2D histogram
+ * Assumes histogram has same bins along X & Y.
+ * BE CAREFUL: if bins edges don't overlap, this can lead to unexpected behavior!
+ */ 
+void RebinSomeBins2D (TH2D** _h, int nbins, double* bins, const bool doWidths) {
+  TH2D* h = (*_h);
+
+  if (nbins >= h->GetNbinsX ()) {
+    cout << "More new bins than old bins, returning." << endl;
+    return;
+  }
+
+  const TString name = h->GetName ();
+  h->SetName ("temp");
+
+  int noldbins = h->GetNbinsX ();
+  double* oldbins = new double[noldbins+1];
+  for (int ix = 1; ix <= noldbins; ix++) {
+    oldbins[ix-1] = h->GetXaxis ()->GetBinLowEdge (ix);
+  }
+  oldbins[noldbins] = h->GetXaxis ()->GetBinLowEdge (noldbins) + h->GetXaxis ()->GetBinWidth (noldbins);
+
+  TH2D* hnew = new TH2D (name, "", nbins, bins, nbins, bins);
+  hnew->Sumw2 ();
+  for (int ix = 0; ix < nbins; ix++) {
+    for (int iy = 0; iy < nbins; iy++) {
+      for (int ixprime = 0; ixprime < noldbins; ixprime++) {
+        for (int iyprime = 0; iyprime < noldbins; iyprime++) {
+          if (bins[ix] <= oldbins[ixprime] && oldbins[ixprime+1] <= bins[ix+1] && bins[iy] <= oldbins[iyprime] && oldbins[iyprime+1] <= bins[iy+1]) {
+            hnew->SetBinContent (ix+1, iy+1, hnew->GetBinContent (ix+1, iy+1) + h->GetBinContent (ixprime+1, iyprime+1)*(doWidths ? h->GetXaxis ()->GetBinWidth (ixprime+1) * h->GetYaxis ()->GetBinWidth (iyprime+1) : 1));
+            hnew->SetBinError (ix+1, iy+1, hnew->GetBinError (ix+1, iy+1) + std::pow (h->GetBinError (ixprime+1, iyprime+1)*(doWidths ? h->GetXaxis ()->GetBinWidth (ixprime+1) * h->GetYaxis ()->GetBinWidth (iyprime+1) : 1), 2));
+          }
+          else if (oldbins[ixprime] <= bins[ix] && bins[ix+1] <= oldbins[ixprime+1] && oldbins[iyprime] <= bins[iy] && bins[iy+1] <= oldbins[iyprime+1]) {
+            hnew->SetBinContent (ix+1, iy+1, hnew->GetBinContent (ix+1, iy+1) + h->GetBinContent (ixprime+1, iyprime+1)*(doWidths ? h->GetXaxis ()->GetBinWidth (ixprime+1) * h->GetYaxis ()->GetBinWidth (iyprime+1) : 1));
+            hnew->SetBinError (ix+1, iy+1, hnew->GetBinError (ix+1, iy+1) + std::pow (h->GetBinError (ixprime+1, iyprime+1)*(doWidths ? h->GetXaxis ()->GetBinWidth (ixprime+1) * h->GetYaxis ()->GetBinWidth (iyprime+1) : 1), 2));
+          }
+        }
+        hnew->SetBinError (ix+1, iy+1, std::sqrt (hnew->GetBinError (ix+1, iy+1)));
+      }
+    }
+  }
+  delete[] oldbins;
+
+  delete h;
+
+  if (doWidths)
+    hnew->Scale (1, "width");
+
+  *_h = hnew;
+}
+
+
+
+/**
  * Un-scales a histogram by the bin width and also applies an optional constant scaling factor (such as a number of events or a luminosity).
  */
 void UnscaleWidth (TH1D* h, const float sf) {
@@ -1249,7 +1310,7 @@ void myDrawHist (TH1D* h, const Color_t col, const Style_t lstyle, const int lwi
   TH1D* hdraw = (TH1D*) h->Clone ();
   hdraw->SetLineColor (col);
   hdraw->SetLineStyle (lstyle);
-  hdraw->SetLineWidth (lstyle);
+  hdraw->SetLineWidth (lwidth);
   hdraw->DrawCopy ("hist ][ same");
   delete hdraw;
   return;
@@ -1838,7 +1899,7 @@ TBox* TBoxNDC (const double x1, const double y1, const double x2, const double y
 
 
 
-void mySimpleMarkerAndBoxAndLineText (double x, double y, const double bsize, const int bstyle, const int bcolor, const double balpha, const int mcolor, const int mstyle, const double msize, const char* text, const double tsize) {
+void mySimpleMarkerAndBoxAndLineText (double x, double y, const double bsize, const int bstyle, const int bcolor, const double balpha, const int mcolor, const int mstyle, const double msize, const char* text, const double tsize, const int lstyle) {
 
   const double y1 = y - (0.25*tsize) - (0.004*bsize) + 0.25*tsize;
   const double y2 = y + (0.25*tsize) + (0.004*bsize) + 0.25*tsize;
@@ -1853,7 +1914,7 @@ void mySimpleMarkerAndBoxAndLineText (double x, double y, const double bsize, co
   TLine *markerLine = new TLine ();
   markerLine->SetNDC ();
   markerLine->SetLineColor (mcolor);
-  markerLine->SetLineStyle (1);
+  markerLine->SetLineStyle (lstyle);
   markerLine->SetLineWidth (3);
   markerLine->DrawLineNDC (x1, 0.5*(y1+y2), x2, 0.5*(y1+y2));
 
