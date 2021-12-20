@@ -1306,12 +1306,12 @@ void myDraw (TH1D* h, const Color_t col, const Style_t mstyle, const float msize
 /**
  * Draws histogram as a graph with some plotting settings.
  */
-void myDrawHist (TH1D* h, const Color_t col, const Style_t lstyle, const int lwidth) {
+void myDrawHist (TH1D* h, const Color_t col, const Style_t lstyle, const int lwidth, const char* opt) {
   TH1D* hdraw = (TH1D*) h->Clone ();
   hdraw->SetLineColor (col);
   hdraw->SetLineStyle (lstyle);
   hdraw->SetLineWidth (lwidth);
-  hdraw->DrawCopy ("hist ][ same");
+  hdraw->DrawCopy (opt);
   delete hdraw;
   return;
 } 

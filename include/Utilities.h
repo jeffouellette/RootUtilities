@@ -349,7 +349,7 @@ void myDraw (TH1D* h, const Color_t col, const Style_t mstyle, const float msize
 /**
  * Draws histogram as a graph with some plotting settings.
  */
-void myDrawHist (TH1D* h, const Color_t col, const Style_t lstyle = 1, const int lwidth = 2);
+void myDrawHist (TH1D* h, const Color_t col, const Style_t lstyle = 1, const int lwidth = 2, const char* opt = "hist ][ same");
 
 
 /**
