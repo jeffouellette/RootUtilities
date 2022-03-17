@@ -371,10 +371,14 @@ void CalcUncertainties (TH1D* h, TH2D* h2, TH1D* hn) {
   const double n1 = hn->GetBinContent (2);
   const double n2 = hn->GetBinContent (3);
 
-  if (n0 <= 1)
-    std::cout << "Warning: n0 <= 1 for histograms " << h->GetName () << " and " << h2->GetName () << std::endl;
-  if (n0 == 0)
-    return; // if no counts just return
+  if (n0 <= 1) {
+    if (n0 == 0)
+      return; // if no counts just return
+    else if (n0 == 1)
+      std::cout << "Warning: n0 == 1 for histograms " << h->GetName () << " and " << h2->GetName () << std::endl;
+    else
+      std::cout << "Warning: n0 invalid for histograms " << h->GetName () << " and " << h2->GetName () << std::endl;
+  }
   assert (n0 >= 1); // check number of entries is greater than 1; if equal to 1 then define all uncertainties to be 100%
 
   h->Scale (1./n1);
@@ -384,8 +388,8 @@ void CalcUncertainties (TH1D* h, TH2D* h2, TH1D* hn) {
   //h->Scale (1., "width");
   if (n0 > 1)
     h2->Scale (std::pow (n0*(n1*n1-n2)/n1, -1));//, "width");
-  else
-    h2->Scale (std::pow (n1, -1));
+  //else
+  //  h2->Scale (std::pow (n1, -1));
   SetVariances (h, h2);
   return;
 }
@@ -746,7 +750,7 @@ void SmoothSystematics (TGAE* sys) { //, TH1D* nom, TH1D* var) {
     }
   }
   TGraphSmooth* gsmooth = new TGraphSmooth ("normal");
-  TGraph* gs = gsmooth->SmoothLowess (tg);
+  TGraph* gs = gsmooth->SmoothLowess (tg, "", 0.67, 5);
 
   for (int i = 0; i < sys->GetN (); i++) {
     sys->GetPoint (i, x, y);
@@ -1163,14 +1167,35 @@ void ScaleGraph (TGAE* g, const TH1D* h, const double sf) {
 
 
 /**
+ * Scales a TGAE and its errors by the central values in another TGraph and/or a constant.
+ */
+void ScaleByGraph (TGAE* g, const TGraph* den, const double sf) {
+  assert (g->GetN () == den->GetN ());
+  double x, y, yden;
+  for (int i = 0; i < g->GetN (); i++) {
+    den->GetPoint (i, x, yden);
+    if (yden == 0)
+      continue;
+    g->GetPoint (i, x, y);
+    g->SetPoint (i, x, y * sf / yden);
+    g->SetPointEYlow (i, g->GetErrorYlow (i) * sf / yden);
+    g->SetPointEYhigh (i, g->GetErrorYhigh (i) * sf / yden);
+  }
+  return;
+}
+
+
+
+/**
  * Applies new binning to a histogram
  * BE CAREFUL: if bins edges don't overlap, this can lead to unexpected behavior!
  */ 
 void RebinSomeBins (TH1D** _h, int nbins, double* bins, const bool doWidths) {
   TH1D* h = (*_h);
 
-  if (nbins >= h->GetNbinsX ()) {
-    cout << "More new bins than old bins, returning." << endl;
+  if (nbins == h->GetNbinsX ()) {
+    if (nbins > h->GetNbinsX ())
+      cout << "More new bins than old bins, returning." << endl;
     return;
   }
 
@@ -1918,12 +1943,14 @@ void mySimpleMarkerAndBoxAndLineText (double x, double y, const double bsize, co
   markerLine->SetLineWidth (3);
   markerLine->DrawLineNDC (x1, 0.5*(y1+y2), x2, 0.5*(y1+y2));
 
-  TMarker *marker = new TMarker(x2-0.02*bsize, y+0.25*tsize, 8);
-  marker->SetNDC();
-  marker->SetMarkerColor (mcolor);
-  marker->SetMarkerStyle (mstyle);
-  marker->SetMarkerSize (msize);
-  marker->Draw ();
+  if (msize > 0) {
+    TMarker *marker = new TMarker(x2-0.02*bsize, y+0.25*tsize, 8);
+    marker->SetNDC();
+    marker->SetMarkerColor (mcolor);
+    marker->SetMarkerStyle (mstyle);
+    marker->SetMarkerSize (msize);
+    marker->Draw ();
+  }
 
  
   TLatex l;

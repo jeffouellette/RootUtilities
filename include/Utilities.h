@@ -314,6 +314,12 @@ void ScaleGraph (TGAE* g, const TH1D* h = nullptr, const double sf = 1.);
 
 
 /**
+ * Scales a TGAE and its errors by the central values in another TGraph and/or a constant.
+ */
+void ScaleByGraph (TGAE* g, const TGraph* den, const double sf = 1.);
+
+
+/**
  * Applies new binning to a histogram
  * BE CAREFUL: if bins edges don't overlap, this can lead to unexpected behavior!
  */
